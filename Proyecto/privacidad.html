@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M-Control | Privacidad y Configuración</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- Navegación Superior -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand">
+                <div class="brand-icon">M</div>
+                <span>M-Control</span>
+                <span class="tag">Borrador v1.0</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="nav-link">🏠 Inicio</a></li>
+                    <li><a href="calendario.html" class="nav-link">📅 Calendario</a></li>
+                    <li><a href="analisis.html" class="nav-link">📊 Métricas</a></li>
+                    <li><a href="educacion.html" class="nav-link">📚 Evidencia y Salud</a></li>
+                    <li><a href="privacidad.html" class="nav-link active">🔒 Privacidad</a></li>
+                    <li><a href="registro.html" class="nav-link nav-btn-action">➕ Registrar Evento</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">🔒 Privacidad y Control de Datos</h1>
+                <p class="page-subtitle">Principios de seguridad ética y gestión total de tus registros personales.</p>
+            </div>
+            <div>
+                <a href="index.html" class="btn btn-secondary">← Volver al Inicio</a>
+            </div>
+        </div>
+
+        <!-- Pilares de Privacidad de M-Control -->
+        <div class="grid-3" style="margin-bottom: 2rem;">
+            <div class="card">
+                <div class="card-title">💻 Almacenamiento 100% Local</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">
+                    Tus eventos, notas y estados se guardan exclusivamente en la memoria de este navegador web (<code>localStorage</code>). No existen servidores externos recolectando tus hábitos íntimos.
+                </p>
+            </div>
+            <div class="card">
+                <div class="card-title">🚫 Cero Publicidad y Venta</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">
+                    M-Control rechaza tajantemente la monetización de datos de salud sexual. No hay rastreadores publicitarios, telemetría oculta ni venta a terceros.
+                </p>
+            </div>
+            <div class="card">
+                <div class="card-title">👤 Modo Anónimo y Soberanía</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">
+                    No se requiere correo electrónico ni nombre real. Puedes enmascarar tus cifras ante miradas curiosas y borrar o exportar toda tu información cuando lo desees.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <!-- Preferencias y Modo Anónimo -->
+            <div class="card">
+                <div class="card-title">⚙️ Ajustes del Sistema</div>
+                
+                <div class="form-group">
+                    <label class="form-label">🎯 Objetivo Personal de Seguimiento</label>
+                    <select id="select-objetivo" class="form-control">
+                        <option value="autorregulacion">Equilibrio y Autorregulación (Recomendado)</option>
+                        <option value="reduccion">Reducción consciente de frecuencia</option>
+                        <option value="observacion">Observación y autoconocimiento sin metas</option>
+                    </select>
+                    <div class="form-hint">Adapta los mensajes explicativos de la plataforma a tu meta personal.</div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label class="form-label">🛡️ Modo Discreto / Camuflaje Visual</label>
+                    <label class="custom-option">
+                        <input type="checkbox" id="chk-anonimo">
+                        <div>
+                            <strong>Ocultar cifras sensibles en pantalla</strong>
+                            <div class="form-hint">Muestra puntos (••••) en lugar de números de eventos para evitar que personas cercanas lean tu pantalla.</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <button id="btn-save-settings" class="btn btn-primary btn-block">Guardar Ajustes</button>
+                </div>
+            </div>
+
+            <!-- Gestión y Exportación de Datos -->
+            <div class="card">
+                <div class="card-title">📦 Exportar y Limpiar Información</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                    Tú eres el único dueño de tu historial. Utiliza las siguientes herramientas para respaldar o destruir tus datos:
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <button id="btn-export-json" class="btn btn-secondary btn-block" style="text-align: left; justify-content: flex-start;">
+                            📥 Exportar Historial Completo (JSON)
+                        </button>
+                        <div class="form-hint">Descarga un archivo local con todos tus registros y fechas.</div>
+                    </div>
+
+                    <div>
+                        <button id="btn-reset-demo" class="btn btn-secondary btn-block" style="text-align: left; justify-content: flex-start;">
+                            🔄 Restaurar Datos de Ejemplo Iniciales
+                        </button>
+                        <div class="form-hint">Restablece los eventos modelo de muestra para seguir explorando el prototipo.</div>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                        <button id="btn-clear-all" class="btn btn-danger btn-block" style="text-align: left; justify-content: flex-start;">
+                            🗑️ Borrar Todos los Registros Permanentemente
+                        </button>
+                        <div class="form-hint" style="color: #fca5a5;">Elimina instantáneamente todo rastro en este navegador. Acción irreversible.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enlaces y Redirecciones Rápidas -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-title">🚀 Redirecciones Rápidas del Sistema</div>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="index.html" class="btn btn-secondary btn-sm">🏠 Dashboard Principal</a>
+                <a href="calendario.html" class="btn btn-secondary btn-sm">📅 Calendario Semáforo</a>
+                <a href="analisis.html" class="btn btn-secondary btn-sm">📊 Métricas y Tendencias</a>
+                <a href="educacion.html" class="btn btn-secondary btn-sm">📚 Biblioteca Científica</a>
+                <a href="registro.html" class="btn btn-success btn-sm">➕ Registrar Evento</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="footer">
+        <p><strong>M-Control</strong> — Investigación y Prototipo Conceptual · Andrés Felipe Mejía Suaza & Linares Miguel Ángel</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const settings = window.StorageService.getSettings();
+            
+            const objSelect = document.getElementById('select-objetivo');
+            const anonimoChk = document.getElementById('chk-anonimo');
+
+            objSelect.value = settings.objetivo || 'autorregulacion';
+            anonimoChk.checked = !!settings.modoAnonimo;
+
+            // Guardar configuración
+            document.getElementById('btn-save-settings').addEventListener('click', () => {
+                settings.objetivo = objSelect.value;
+                settings.modoAnonimo = anonimoChk.checked;
+                window.StorageService.saveSettings(settings);
+                showToast('Ajustes guardados correctamente.');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            });
+
+            // Exportar datos JSON
+            document.getElementById('btn-export-json').addEventListener('click', () => {
+                const events = window.StorageService.getEvents();
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(events, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", "mcontrol_respaldo_" + new Date().toISOString().slice(0, 10) + ".json");
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+                showToast('Archivo JSON descargado');
+            });
+
+            // Restaurar datos de ejemplo
+            document.getElementById('btn-reset-demo').addEventListener('click', () => {
+                if (confirm('¿Deseas restaurar los registros de prueba iniciales de M-Control?')) {
+                    window.StorageService.resetData();
+                    showToast('Datos de ejemplo restaurados');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 600);
+                }
+            });
+
+            // Borrar todo
+            document.getElementById('btn-clear-all').addEventListener('click', () => {
+                if (confirm('¿Estás seguro de que deseas eliminar TODOS los registros de M-Control? Esta acción no se puede deshacer.')) {
+                    window.StorageService.clearAll();
+                    showToast('Todos los datos han sido borrados');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 600);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

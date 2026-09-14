@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M-Control | Análisis y Tendencias</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .progress-bar-container {
+            background-color: #0f172a;
+            border-radius: 9999px;
+            height: 12px;
+            overflow: hidden;
+            margin: 0.5rem 0 1rem 0;
+            display: flex;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navegación Superior -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand">
+                <div class="brand-icon">M</div>
+                <span>M-Control</span>
+                <span class="tag">Borrador v1.0</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="nav-link">🏠 Inicio</a></li>
+                    <li><a href="calendario.html" class="nav-link">📅 Calendario</a></li>
+                    <li><a href="analisis.html" class="nav-link active">📊 Métricas</a></li>
+                    <li><a href="educacion.html" class="nav-link">📚 Evidencia y Salud</a></li>
+                    <li><a href="privacidad.html" class="nav-link">🔒 Privacidad</a></li>
+                    <li><a href="registro.html" class="nav-link nav-btn-action">➕ Registrar Evento</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">📊 Análisis de Patrones y Bienestar</h1>
+                <p class="page-subtitle">Indicadores estadísticos del modelo multidimensional de M-Control.</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="registro.html" class="btn btn-success">➕ Registrar Evento</a>
+                <a href="calendario.html" class="btn btn-secondary">📅 Ver en Calendario</a>
+            </div>
+        </div>
+
+        <!-- Métricas Temporales -->
+        <div class="grid-4" style="margin-bottom: 2rem;">
+            <div class="metric-box">
+                <div class="metric-value sensitive-metric" id="stat-7">0</div>
+                <div class="metric-label">Últimos 7 Días</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value sensitive-metric" id="stat-14">0</div>
+                <div class="metric-label">Últimos 14 Días</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value sensitive-metric" id="stat-30">0</div>
+                <div class="metric-label">Últimos 30 Días</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value sensitive-metric" id="stat-90">0</div>
+                <div class="metric-label">Últimos 90 Días</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <!-- Distribución del Semáforo -->
+            <div class="card">
+                <div class="card-title">🚥 Distribución del Semáforo de Bienestar</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                    Proporción de tus registros clasificados según señales de salud y funcionamiento:
+                </p>
+
+                <!-- Barra compuesta -->
+                <div class="progress-bar-container" style="height: 20px;">
+                    <div id="bar-green" class="progress-bar-fill" style="background-color: var(--color-green); width: 50%;"></div>
+                    <div id="bar-yellow" class="progress-bar-fill" style="background-color: var(--color-yellow); width: 25%;"></div>
+                    <div id="bar-red" class="progress-bar-fill" style="background-color: var(--color-red); width: 25%;"></div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="status-indicator-dot green"></span>
+                            <strong>Verde (Balance):</strong>
+                        </span>
+                        <span id="txt-count-green" style="font-weight: 600; color: var(--color-green);">0 (0%)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="status-indicator-dot yellow"></span>
+                            <strong>Amarillo (Observar):</strong>
+                        </span>
+                        <span id="txt-count-yellow" style="font-weight: 600; color: var(--color-yellow);">0 (0%)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="status-indicator-dot red"></span>
+                            <strong>Rojo (Pausa sugerida):</strong>
+                        </span>
+                        <span id="txt-count-red" style="font-weight: 600; color: var(--color-red);">0 (0%)</span>
+                    </div>
+                </div>
+
+                <div class="callout callout-info" style="margin-top: 1.25rem; margin-bottom: 0;">
+                    Recuerda: Los colores reflejan tu bienestar y contexto (estrés, molestias, sueño), no un conteo de abstinencia.
+                </div>
+            </div>
+
+            <!-- Análisis de Intervalos -->
+            <div class="card">
+                <div class="card-title">⏱️ Intervalos de Autorregulación</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                    Tiempo transcurrido entre eventos para observar tu cadencia personal:
+                </p>
+
+                <div class="grid-2" style="margin-bottom: 1rem;">
+                    <div class="metric-box">
+                        <div class="metric-value" id="interval-avg">--</div>
+                        <div class="metric-label">Intervalo Promedio</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="interval-last">--</div>
+                        <div class="metric-label">Tiempo desde Último Evento</div>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Diagnóstico Algorítmico del Patrón:</h4>
+                    <p id="algoritmo-feedback" style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                        Analizando historial...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ponderación de Factores del Algoritmo (Basado en la investigación) -->
+        <div class="card">
+            <div class="card-title">⚖️ Modelo de Puntuación de Bienestar (0–100)</div>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+                M-Control no utiliza una regla rígida como "X días es bueno y Y días es malo". Utiliza la siguiente matriz de pesos científicos:
+            </p>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Factor Evaluado</th>
+                            <th>Peso Científico</th>
+                            <th>Criterio de Evaluación</th>
+                            <th>Impacto en el Semáforo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Interferencia Funcional</strong></td>
+                            <td><span style="color: var(--color-red); font-weight: 700;">Muy Alto (35%)</span></td>
+                            <td>Afectación a responsabilidades de trabajo, estudio, relaciones o sueño.</td>
+                            <td>Interferencia severa detona alerta Roja automáticamente.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Pérdida de Control</strong></td>
+                            <td><span style="color: var(--color-red); font-weight: 700;">Muy Alto (30%)</span></td>
+                            <td>Incapacidad persistente de posponer el impulso o repetición compulsiva.</td>
+                            <td>Bajo control reduce drásticamente el puntaje hacia Amarillo/Rojo.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Síntomas Físicos</strong></td>
+                            <td><span style="color: var(--color-yellow); font-weight: 700;">Alto (25%)</span></td>
+                            <td>Rozaduras, inflamación, hipersensibilidad o dolor por fricción excesiva.</td>
+                            <td>Molestias moderadas activan recomendación de pausa física.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Estrés / Escape Emocional</strong></td>
+                            <td><span style="color: var(--accent); font-weight: 600;">Medio (15%)</span></td>
+                            <td>Uso recurrente como única vía de afrontamiento ante ansiedad intensa.</td>
+                            <td>Sugiere diversificar mecanismos de autorregulación emocional.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Intervalo Histórico Propio</strong></td>
+                            <td><span style="color: var(--accent); font-weight: 600;">Medio (15%)</span></td>
+                            <td>Comparación con el promedio propio del usuario (no con tablas ajenas).</td>
+                            <td>Cambios bruscos hacia alta frecuencia generan alerta Amarilla.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Navegación a Educación -->
+        <div class="callout callout-info" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div>
+                <strong>¿Quieres profundizar en la base médica de estos factores?</strong>
+                <p style="font-size: 0.85rem; color: #bae6fd; margin-top: 0.2rem;">Consulta los criterios de la OMS (ICD-11 CSBD) y organizaciones de medicina sexual.</p>
+            </div>
+            <a href="educacion.html" class="btn btn-primary btn-sm">Ir a Biblioteca Científica ➔</a>
+        </div>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="footer">
+        <p><strong>M-Control</strong> — Investigación y Prototipo Conceptual · Andrés Felipe Mejía Suaza & Linares Miguel Ángel</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const events = window.StorageService.getEvents();
+
+            const now = new Date();
+            const d7 = new Date(now.getTime() - (7 * 24 * 3600 * 1000));
+            const d14 = new Date(now.getTime() - (14 * 24 * 3600 * 1000));
+            const d30 = new Date(now.getTime() - (30 * 24 * 3600 * 1000));
+            const d90 = new Date(now.getTime() - (90 * 24 * 3600 * 1000));
+
+            const ev7 = events.filter(e => new Date(e.date) >= d7);
+            const ev14 = events.filter(e => new Date(e.date) >= d14);
+            const ev30 = events.filter(e => new Date(e.date) >= d30);
+            const ev90 = events.filter(e => new Date(e.date) >= d90);
+
+            document.getElementById('stat-7').innerText = ev7.length;
+            document.getElementById('stat-14').innerText = ev14.length;
+            document.getElementById('stat-30').innerText = ev30.length;
+            document.getElementById('stat-90').innerText = ev90.length;
+
+            // Distribución de colores
+            let greenCount = events.filter(e => e.color === 'green').length;
+            let yellowCount = events.filter(e => e.color === 'yellow').length;
+            let redCount = events.filter(e => e.color === 'red').length;
+            let total = events.length;
+
+            if (total > 0) {
+                let pG = ((greenCount / total) * 100).toFixed(0);
+                let pY = ((yellowCount / total) * 100).toFixed(0);
+                let pR = ((redCount / total) * 100).toFixed(0);
+
+                document.getElementById('bar-green').style.width = `${pG}%`;
+                document.getElementById('bar-yellow').style.width = `${pY}%`;
+                document.getElementById('bar-red').style.width = `${pR}%`;
+
+                document.getElementById('txt-count-green').innerText = `${greenCount} (${pG}%)`;
+                document.getElementById('txt-count-yellow').innerText = `${yellowCount} (${pY}%)`;
+                document.getElementById('txt-count-red').innerText = `${redCount} (${pR}%)`;
+            } else {
+                document.getElementById('bar-green').style.width = '100%';
+                document.getElementById('bar-yellow').style.width = '0%';
+                document.getElementById('bar-red').style.width = '0%';
+                document.getElementById('txt-count-green').innerText = '0 (0%)';
+                document.getElementById('txt-count-yellow').innerText = '0 (0%)';
+                document.getElementById('txt-count-red').innerText = '0 (0%)';
+            }
+
+            // Intervalos
+            if (events.length > 0) {
+                const latestDate = new Date(events[0].date);
+                const diffHours = (now - latestDate) / (1000 * 3600);
+                if (diffHours < 24) {
+                    document.getElementById('interval-last').innerText = `${diffHours.toFixed(0)} horas`;
+                } else {
+                    document.getElementById('interval-last').innerText = `${(diffHours / 24).toFixed(1)} días`;
+                }
+
+                if (events.length > 1) {
+                    let diffs = [];
+                    for (let i = 0; i < events.length - 1; i++) {
+                        const d = Math.abs(new Date(events[i].date) - new Date(events[i+1].date)) / (1000 * 3600 * 24);
+                        diffs.push(d);
+                    }
+                    const avg = (diffs.reduce((a, b) => a + b, 0) / diffs.length).toFixed(1);
+                    document.getElementById('interval-avg').innerText = `${avg} días`;
+                } else {
+                    document.getElementById('interval-avg').innerText = '1 evento';
+                }
+
+                // Generación de diagnóstico comprensivo
+                const feedbackEl = document.getElementById('algoritmo-feedback');
+                if (redCount > 0) {
+                    feedbackEl.innerHTML = `Has tenido <strong>${redCount} registros en zona Roja</strong>. El principal motivo detectado ha sido interferencia en el descanso o presencia de fatiga/irritación. Te sugerimos priorizar el autocuidado y permitir descansos más prolongados para recuperar el balance.`;
+                } else if (yellowCount > 0) {
+                    feedbackEl.innerHTML = `Tu patrón presenta <strong>${yellowCount} alertas Amarillas</strong>, principalmente vinculadas a intervalos estrechos o momentos de alto estrés. El sistema observa que la autorregulación es buena, pero conviene prestar atención al uso de la conducta como escape de ansiedad.`;
+                } else {
+                    feedbackEl.innerHTML = `¡Excelente equilibrio! El <strong>${greenCount === total ? '100%' : 'mayor porcentaje'}</strong> de tus registros se encuentra en zona Verde, demostrando buen control personal, sin impacto negativo en tus actividades y con bienestar físico preservado.`;
+                }
+            } else {
+                document.getElementById('interval-last').innerText = 'Sin registros';
+                document.getElementById('interval-avg').innerText = 'N/A';
+                document.getElementById('algoritmo-feedback').innerText = 'Registra eventos para que el sistema genere diagnósticos basados en tu historial.';
+            }
+        });
+    </script>
+</body>
+</html>

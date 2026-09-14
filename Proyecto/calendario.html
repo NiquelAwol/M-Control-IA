@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M-Control | Calendario Semáforo</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- Navegación Superior -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand">
+                <div class="brand-icon">M</div>
+                <span>M-Control</span>
+                <span class="tag">Borrador v1.0</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="nav-link">🏠 Inicio</a></li>
+                    <li><a href="calendario.html" class="nav-link active">📅 Calendario</a></li>
+                    <li><a href="analisis.html" class="nav-link">📊 Métricas</a></li>
+                    <li><a href="educacion.html" class="nav-link">📚 Evidencia y Salud</a></li>
+                    <li><a href="privacidad.html" class="nav-link">🔒 Privacidad</a></li>
+                    <li><a href="registro.html" class="nav-link nav-btn-action">➕ Registrar Evento</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">📅 Calendario de Autorregulación</h1>
+                <p class="page-subtitle">Visualización mensual con sistema de colores orientativo y explicativo.</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="registro.html" class="btn btn-success">➕ Registrar Hoy</a>
+                <a href="analisis.html" class="btn btn-secondary">📊 Ver Métricas</a>
+            </div>
+        </div>
+
+        <!-- Leyenda del Semáforo -->
+        <div class="card" style="padding: 1rem 1.5rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; font-size: 0.9rem;">
+                <span style="font-weight: 600; color: var(--text-primary);">Leyenda de Orientación:</span>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span class="status-indicator-dot green"></span>
+                    <span><strong>Verde:</strong> Patrón en balance, sin interferencia ni molestias</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span class="status-indicator-dot yellow"></span>
+                    <span><strong>Amarillo:</strong> Intervalo corto o estrés; conviene observar</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span class="status-indicator-dot red"></span>
+                    <span><strong>Rojo:</strong> Pausa sugerida por molestia física o interferencia</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendario Grid -->
+        <div class="card">
+            <div class="calendar-controls">
+                <button id="btn-prev-month" class="btn btn-secondary btn-sm">◀ Mes Anterior</button>
+                <h2 id="calendar-month-title" style="font-size: 1.3rem; text-align: center;">Septiembre 2026</h2>
+                <button id="btn-next-month" class="btn btn-secondary btn-sm">Mes Siguiente ▶</button>
+            </div>
+
+            <div class="calendar-grid" id="calendar-grid">
+                <!-- Se inyecta dinámicamente con JS -->
+            </div>
+        </div>
+
+        <!-- Lista de Eventos Recientes del Mes -->
+        <div class="card">
+            <div class="card-title">📋 Registro Detallado del Mes</div>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+                Haz clic en cualquier día del calendario o revisa los eventos directos en esta tabla:
+            </p>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Fecha y Hora</th>
+                            <th>Estado Semáforo</th>
+                            <th>Control</th>
+                            <th>Interferencia</th>
+                            <th>Molestias</th>
+                            <th>Puntaje</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="events-table-body">
+                        <!-- Se llena con JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Detalle del Día -->
+    <div class="modal-overlay" id="day-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-date-title">Detalle del Día</h3>
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+            </div>
+            <div id="modal-body">
+                <!-- Contenido dinámico -->
+            </div>
+            <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+                <button class="btn btn-secondary btn-sm" id="modal-cancel-btn">Cerrar</button>
+                <a href="registro.html" class="btn btn-success btn-sm">➕ Agregar Evento Este Día</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de Página -->
+    <footer class="footer">
+        <p><strong>M-Control</strong> — Investigación y Prototipo Conceptual · Andrés Felipe Mejía Suaza & Linares Miguel Ángel</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let currentYear = 2026;
+        let currentMonth = 8; // Septiembre (0-indexed: 8 = Septiembre)
+
+        const monthNames = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCalendar();
+            renderTable();
+
+            document.getElementById('btn-prev-month').addEventListener('click', () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderCalendar();
+            });
+
+            document.getElementById('btn-next-month').addEventListener('click', () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderCalendar();
+            });
+
+            // Cerrar modal
+            document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+            document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+        });
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            document.getElementById('calendar-month-title').innerText = `${monthNames[currentMonth]} ${currentYear}`;
+
+            const daysHeader = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+            daysHeader.forEach(d => {
+                const headerCell = document.createElement('div');
+                headerCell.className = 'calendar-day-header';
+                headerCell.innerText = d;
+                grid.appendChild(headerCell);
+            });
+
+            // Primer día del mes
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            let startDayIndex = firstDay.getDay() - 1; // Ajuste para que lunes sea 0
+            if (startDayIndex === -1) startDayIndex = 6;
+
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            // Celdas vacías previas
+            for (let i = 0; i < startDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day-cell empty';
+                grid.appendChild(emptyCell);
+            }
+
+            const events = window.StorageService.getEvents();
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-day-cell';
+
+                const dayNum = document.createElement('div');
+                dayNum.className = 'day-num';
+                dayNum.innerText = day;
+                cell.appendChild(dayNum);
+
+                // Buscar eventos en este día
+                const dayEvents = events.filter(e => {
+                    const eDate = new Date(e.date);
+                    return eDate.getFullYear() === currentYear &&
+                           eDate.getMonth() === currentMonth &&
+                           eDate.getDate() === day;
+                });
+
+                if (dayEvents.length > 0) {
+                    // Tomar el evento con menor puntaje (color predominante para precaución)
+                    let worstEvent = dayEvents[0];
+                    dayEvents.forEach(e => {
+                        if (e.score < worstEvent.score) worstEvent = e;
+                    });
+
+                    cell.classList.add(worstEvent.color);
+
+                    const badge = document.createElement('div');
+                    badge.className = 'day-badge';
+                    if (worstEvent.color === 'green') badge.innerText = '🟢 Balance';
+                    else if (worstEvent.color === 'yellow') badge.innerText = '🟡 Observar';
+                    else badge.innerText = '🔴 Pausa';
+                    cell.appendChild(badge);
+                }
+
+                // Clic para abrir modal
+                cell.addEventListener('click', () => {
+                    openDayModal(day, dayEvents);
+                });
+
+                grid.appendChild(cell);
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('events-table-body');
+            tbody.innerHTML = '';
+            const events = window.StorageService.getEvents();
+
+            if (events.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay eventos registrados aún.</td></tr>`;
+                return;
+            }
+
+            events.forEach(e => {
+                const tr = document.createElement('tr');
+                
+                let badgeClass = e.color === 'green' ? 'green' : (e.color === 'yellow' ? 'yellow' : 'red');
+                let badgeTxt = e.color === 'green' ? '🟢 Verde' : (e.color === 'yellow' ? '🟡 Amarillo' : '🔴 Rojo');
+
+                tr.innerHTML = `
+                    <td><strong>${formatDateDisplay(e.date)}</strong></td>
+                    <td><span class="status-badge ${badgeClass}" style="margin: 0; padding: 0.2rem 0.6rem; font-size: 0.8rem;">${badgeTxt}</span></td>
+                    <td>${e.control === 'alto' ? 'Alto' : (e.control === 'medio' ? 'Medio' : 'Bajo')}</td>
+                    <td>${e.interferencia === 'ninguna' ? 'Ninguna' : (e.interferencia === 'leve' ? 'Leve' : 'Severa')}</td>
+                    <td>${e.sintomas === 'ninguno' ? 'Sin molestias' : (e.sintomas === 'leve' ? 'Leve molestia' : 'Dolor / Cuidado')}</td>
+                    <td><strong style="color: var(--accent);">${e.score}/100</strong></td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteEventItem('${e.id}')">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openDayModal(day, dayEvents) {
+            const modal = document.getElementById('day-modal');
+            const title = document.getElementById('modal-date-title');
+            const body = document.getElementById('modal-body');
+
+            title.innerText = `Día ${day} de ${monthNames[currentMonth]} ${currentYear}`;
+            
+            if (!dayEvents || dayEvents.length === 0) {
+                body.innerHTML = `
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        No hay ningún registro anotado para este día.
+                    </p>
+                    <div class="callout callout-info">
+                        El semáforo neutral o sin eventos indica un día libre de actividad registrada. Recuerda que no existe una cantidad obligatoria fija por semana ni por mes.
+                    </div>
+                `;
+            } else {
+                let html = `<p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">Total de eventos en esta fecha: <strong>${dayEvents.length}</strong></p>`;
+                dayEvents.forEach((ev, idx) => {
+                    html += `
+                        <div class="card semaforo-card ${ev.color}" style="margin-bottom: 1rem; padding: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <strong>Hora: ${new Date(ev.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</strong>
+                                <span class="status-badge ${ev.color}" style="margin: 0; padding: 0.2rem 0.6rem; font-size: 0.75rem;">Puntaje: ${ev.score}/100</span>
+                            </div>
+                            <p style="font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.5rem;">
+                                <strong>Evaluación:</strong> ${ev.explicacion}
+                            </p>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">
+                                • Control: ${ev.control}<br>
+                                • Interferencia: ${ev.interferencia}<br>
+                                • Síntomas físicos: ${ev.sintomas}<br>
+                                • Estrés previo: ${ev.estres}<br>
+                                ${ev.notas ? `• Notas: "${ev.notas}"` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                body.innerHTML = html;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('day-modal').style.display = 'none';
+        }
+
+        window.deleteEventItem = function(id) {
+            if (confirm('¿Deseas eliminar este registro?')) {
+                window.StorageService.deleteEvent(id);
+                renderCalendar();
+                renderTable();
+                showToast('Registro eliminado');
+            }
+        };
+    </script>
+</body>
+</html>

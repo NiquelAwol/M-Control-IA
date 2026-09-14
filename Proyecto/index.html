@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M-Control | Autorregulación y Bienestar Masculino</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- Navegación Superior -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand">
+                <div class="brand-icon">M</div>
+                <span>M-Control</span>
+                <span class="tag">Borrador v1.0</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="nav-link active">🏠 Inicio</a></li>
+                    <li><a href="calendario.html" class="nav-link">📅 Calendario</a></li>
+                    <li><a href="analisis.html" class="nav-link">📊 Métricas</a></li>
+                    <li><a href="educacion.html" class="nav-link">📚 Evidencia y Salud</a></li>
+                    <li><a href="privacidad.html" class="nav-link">🔒 Privacidad</a></li>
+                    <li><a href="registro.html" class="nav-link nav-btn-action">➕ Registrar Evento</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+        <!-- Encabezado de Bienvenida -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Panel de Autorregulación</h1>
+                <p class="page-subtitle">Seguimiento inteligente basado en evidencia científica, no en prohibiciones ni culpas.</p>
+            </div>
+            <div>
+                <a href="registro.html" class="btn btn-success">➕ Nuevo Registro Rápido</a>
+            </div>
+        </div>
+
+        <!-- Aviso de Seguridad / Principio Científico -->
+        <div class="callout callout-info">
+            <span style="font-size: 1.5rem;">💡</span>
+            <div>
+                <strong>Nota de diseño científico:</strong> M-Control no promueve la abstinencia total ni juzga la frecuencia aislada. La ciencia médica (OMS, ISSM) demuestra que la masturbación es una práctica saludable; el foco está en evitar la interferencia funcional, la pérdida de control o el malestar físico.
+            </div>
+        </div>
+
+        <!-- Estado Actual: Semáforo de Bienestar -->
+        <div class="card semaforo-card" id="card-semaforo">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <span class="status-badge" id="badge-estado">
+                        <span class="status-indicator-dot" id="dot-estado"></span>
+                        <span id="text-estado">Calculando estado...</span>
+                    </span>
+                    <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;" id="titulo-estado">Evaluando tu patrón actual...</h2>
+                    <p style="color: var(--text-secondary); max-width: 750px;" id="desc-estado">
+                        Cargando información del registro...
+                    </p>
+                </div>
+                <div style="text-align: right; min-width: 140px;">
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Puntuación de Bienestar</div>
+                    <div style="font-size: 2.8rem; font-weight: 800; color: var(--accent);" id="puntuacion-bienestar">--</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Escala de 0 a 100</div>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 1.25rem 0;">
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div style="font-size: 0.9rem; color: var(--text-muted);" id="ultimo-registro-txt">
+                    Último evento registrado: Cargando...
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="analisis.html" class="btn btn-secondary btn-sm">Ver Análisis Completo ➔</a>
+                    <a href="calendario.html" class="btn btn-secondary btn-sm">Ver Calendario ➔</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas Resumen -->
+        <div class="grid-4" style="margin-bottom: 2rem;">
+            <div class="metric-box">
+                <div class="metric-value sensitive-metric" id="metric-7dias">0</div>
+                <div class="metric-label">Eventos (Últimos 7 días)</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value sensitive-metric" id="metric-30dias">0</div>
+                <div class="metric-label">Eventos (Últimos 30 días)</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value" id="metric-intervalo">--</div>
+                <div class="metric-label">Intervalo Promedio</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value" id="metric-control" style="color: var(--color-green);">Bueno</div>
+                <div class="metric-label">Nivel de Control Global</div>
+            </div>
+        </div>
+
+        <!-- Acceso Rápido a Secciones -->
+        <h2 style="font-size: 1.3rem; margin-bottom: 1rem;">Módulos del Sistema</h2>
+        <div class="grid-3">
+            <!-- Tarjeta Registro -->
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="card-title">📝 Registro Inteligente</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                        Registra tus eventos en segundos valorando aspectos clave: control autopercibido, estrés, molestias físicas e interferencia cotidiana.
+                    </p>
+                </div>
+                <a href="registro.html" class="btn btn-primary btn-block">Ir a Registro ➔</a>
+            </div>
+
+            <!-- Tarjeta Calendario -->
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="card-title">📅 Calendario Semáforo</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                        Visualiza tus días en Verde (balance), Amarillo (observación) y Rojo (pausa/autocuidado). Sin clasificaciones morales.
+                    </p>
+                </div>
+                <a href="calendario.html" class="btn btn-primary btn-block">Abrir Calendario ➔</a>
+            </div>
+
+            <!-- Tarjeta Evidencia Científica -->
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="card-title">📚 Evidencia y Mitos</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                        Aprende con fuentes médicas avaladas (OMS ICD-11, Cleveland Clinic, ISSM). Desmitifica falsas creencias populares sobre la sexualidad.
+                    </p>
+                </div>
+                <a href="educacion.html" class="btn btn-primary btn-block">Consultar Evidencia ➔</a>
+            </div>
+        </div>
+
+        <!-- Recomendación Proactiva de Salud -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));">
+            <div class="card-title">🛡️ Compromiso con tu Salud y Privacidad</div>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem;">
+                Toda la información ingresada en este prototipo reside <strong>únicamente en tu navegador local (localStorage)</strong>. Ningún dato sensible es transmitido ni vendido. Si sientes malestar físico recurrente, pérdida persistente del control o interferencia con tu calidad de vida, te recomendamos consultar a un profesional médico o sexólogo clínico.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="privacidad.html" class="btn btn-secondary btn-sm">Ver Políticas de Privacidad</a>
+                <a href="educacion.html#ayuda-profesional" class="btn btn-secondary btn-sm">Cuándo buscar orientación médica</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="footer">
+        <p><strong>M-Control</strong> — Investigación y Prototipo Conceptual · Equipo: Andrés Felipe Mejía Suaza & Linares Miguel Ángel</p>
+        <p style="margin-top: 0.25rem;">Desarrollado bajo principios de rigor científico, respeto a la autonomía y no-estigmatización.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const events = window.StorageService.getEvents();
+
+            // Calcular métricas
+            const now = new Date();
+            const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+            const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+
+            const events7 = events.filter(e => new Date(e.date) >= sevenDaysAgo);
+            const events30 = events.filter(e => new Date(e.date) >= thirtyDaysAgo);
+
+            document.getElementById('metric-7dias').innerText = events7.length;
+            document.getElementById('metric-30dias').innerText = events30.length;
+
+            // Calcular intervalo promedio
+            if (events.length > 1) {
+                let diffs = [];
+                for (let i = 0; i < events.length - 1; i++) {
+                    const diffDays = Math.abs(new Date(events[i].date) - new Date(events[i+1].date)) / (1000 * 60 * 60 * 24);
+                    diffs.push(diffDays);
+                }
+                const avgDays = (diffs.reduce((a, b) => a + b, 0) / diffs.length).toFixed(1);
+                document.getElementById('metric-intervalo').innerText = `${avgDays} días`;
+            } else {
+                document.getElementById('metric-intervalo').innerText = 'N/A';
+            }
+
+            // Evaluar último evento o estado general
+            if (events.length > 0) {
+                const latest = events[0];
+                const cardSemaforo = document.getElementById('card-semaforo');
+                const badge = document.getElementById('badge-estado');
+                const dot = document.getElementById('dot-estado');
+                const textEstado = document.getElementById('text-estado');
+                const titulo = document.getElementById('titulo-estado');
+                const desc = document.getElementById('desc-estado');
+                const puntaje = document.getElementById('puntuacion-bienestar');
+                const ultimoTxt = document.getElementById('ultimo-registro-txt');
+
+                ultimoTxt.innerText = `Último registro: ${formatDateDisplay(latest.date)} (${latest.notas ? '"' + latest.notas + '"' : 'Sin notas'})`;
+                puntaje.innerText = latest.score;
+
+                cardSemaforo.className = `card semaforo-card ${latest.color}`;
+                badge.className = `status-badge ${latest.color}`;
+                dot.className = `status-indicator-dot ${latest.color}`;
+
+                if (latest.color === 'green') {
+                    textEstado.innerText = 'Verde — Patrón Compatible y Equilibrado';
+                    titulo.innerText = 'Tu patrón se encuentra en balance';
+                    desc.innerText = latest.explicacion;
+                } else if (latest.color === 'yellow') {
+                    textEstado.innerText = 'Amarillo — Conviene Observar el Contexto';
+                    titulo.innerText = 'Atención sugerida a señales de estrés o frecuencia';
+                    desc.innerText = latest.explicacion;
+                } else {
+                    textEstado.innerText = 'Rojo — Recomendación de Pausa y Autocuidado';
+                    titulo.innerText = 'Señales de sobrecarga física o interferencia funcional';
+                    desc.innerText = latest.explicacion;
+                }
+
+                // Control global
+                const controlMetric = document.getElementById('metric-control');
+                if (latest.control === 'alto') {
+                    controlMetric.innerText = 'Alto';
+                    controlMetric.style.color = 'var(--color-green)';
+                } else if (latest.control === 'medio') {
+                    controlMetric.innerText = 'Moderado';
+                    controlMetric.style.color = 'var(--color-yellow)';
+                } else {
+                    controlMetric.innerText = 'Bajo';
+                    controlMetric.style.color = 'var(--color-red)';
+                }
+            } else {
+                document.getElementById('titulo-estado').innerText = 'Aún no hay registros';
+                document.getElementById('desc-estado').innerText = 'Comienza registrando tu primer evento para que el sistema aprenda de tu patrón individual.';
+                document.getElementById('puntuacion-bienestar').innerText = '100';
+            }
+        });
+    </script>
+</body>
+</html>
