@@ -1,0 +1,11 @@
+services:
+  mcontrol-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcontrol_web
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    volumes:
+      - ./Proyecto:/usr/share/nginx/html:ro
