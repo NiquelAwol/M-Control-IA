@@ -29,9 +29,7 @@ El sistema fue migrado y reestructurado como una aplicación **Full-Stack en Lar
 | Aplicación | Puerto Host | URL Local | Descripción / BD |
 | :--- | :--- | :--- | :--- |
 | **M-Control (Laravel)** | **`8088`** | `http://localhost:8088` | SQLite autónoma (`database/database.sqlite`) |
-| **SGE (Laravel)** | `8080` | `http://localhost:8080` | Sistema de Gestión Empresarial |
-| **phpMyAdmin (SGE)** | `8081` | `http://localhost:8081` | Gestor de BD MySQL/MariaDB |
-| **ProcessMaker 3.8** | `8085` | `http://localhost:8085` | Motor BPM en Docker |
+
 
 ---
 
