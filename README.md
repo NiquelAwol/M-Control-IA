@@ -103,6 +103,64 @@ El puntaje se evalúa de acuerdo con la siguiente ponderación:
 
 ---
 
+## 📊 Análisis Exploratorio de Datos (EDA) y Módulo de IA
+
+En cumplimiento con los requerimientos académicos de las clases de Inteligencia Artificial (**Clase 3** y **Clase 4**), el proyecto incluye un pipeline completo de procesamiento de datos en Python, análisis estadístico vectorizado con **NumPy** y visualizaciones exploratorias con **Matplotlib**.
+
+### 1. Variables Analizadas (`datos_mcontrol.csv`)
+Se recolectaron y estructuraron registros longitudinales multidimensionales:
+* **`intervalo_horas`** (Numérica continua): Horas de recuperación entre eventos consecutivos.
+* **`puntuacion_bienestar`** (Numérica continua, 0-100): Índice clínico multidimensional.
+* **`nivel_estres`** (Numérica discreta, 1-10): Escala de tensión psicológica y física previa.
+* **`control_autopercibido`** (Ordinal, 1 a 3): Autodeterminación (Bajo, Medio, Alto).
+* **`interferencia_funcional`** (Ordinal, 0 a 2): Afectación de obligaciones, estudio o sueño.
+* **`sintomas_fisicos`** (Ordinal, 0 a 2): Molestias o irritación física.
+* **`consumo_pornografia`** (Binaria, 0 o 1): Presencia de estímulos audiovisuales digitales.
+* **`estado_semaforo`** (Categórica): Clasificación preventiva de salud (**Verde**, **Amarillo**, **Rojo**).
+
+### 2. Estadísticas Descriptivas Obtenidas (NumPy)
+Mediante el script [`eda_proyecto.py`](file:///C:/Users/USER/Documents/MControlPrueba/M-Control-IA/eda_proyecto.py) se calcularon vectorialmente con NumPy:
+
+| Variable | Media (`np.mean`) | Mediana (`np.median`) | Desv. Estándar (`np.std`) | Mínimo (`np.min`) | Máximo (`np.max`) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **`intervalo_horas`** | **45.30 h** (~1.9 días) | **44.30 h** | **19.63 h** | **7.50 h** | **79.70 h** |
+| **`puntuacion_bienestar`** | **72.63 pts** | **81.00 pts** | **23.82 pts** | **18.00 pts** | **97.00 pts** |
+| **`nivel_estres`** | **4.96 / 10** | **4.00 / 10** | **2.33 pts** | **2.00 / 10** | **10.00 / 10** |
+
+*Adicionalmente, el **64.4%** de los registros se ubicaron en estado Verde, el **22.2%** en Amarillo y el **13.3%** en Rojo; con una interferencia funcional presente en el **35.6%** de los eventos.*
+
+### 3. Patrones y Relaciones Observadas en los Gráficos
+
+![Distribución de Bienestar](histograma_bienestar.png)
+* **Histograma de Bienestar (`histograma_bienestar.png`):** Muestra un sesgo hacia valores altos (mediana de 81 pts frente a una media de 72.6 pts), confirmando que en condiciones normales la conducta es saludable y preserva el bienestar, con una cola izquierda correspondiente a episodios aislados de repetición compulsiva.
+
+![Intervalo vs Bienestar](dispersion_intervalo_bienestar.png)
+* **Intervalo de Descanso vs. Bienestar (`dispersion_intervalo_bienestar.png`):** Existe una correlación positiva directa y asintótica: descansos superiores a **36 - 48 horas** garantizan puntuaciones en zona verde (bienestar $\ge 70$), mientras que intervalos inferiores a **15 horas** caen invariablemente en zonas amarilla y roja.
+
+![Estrés vs Bienestar](dispersion_estres_bienestar.png)
+* **Nivel de Estrés vs. Bienestar (`dispersion_estres_bienestar.png`):** Correlación negativa clara: niveles de estrés elevados ($> 7/10$) actúan como detonante de pérdida de control autopercibido e interferencia, precipitando la caída del puntaje de bienestar.
+
+### 4. Influencia en el Futuro Modelo de IA
+Estos hallazgos determinan directamente la arquitectura de Inteligencia Artificial que se implementará en los siguientes cortes:
+1. **Modelo de Clasificación Preventiva (Random Forest / Regresión Logística):** Entrenar un modelo supervisado que anticipe el estado del semáforo preventivo antes de que el usuario registre el evento, sugiriendo pausas activas cuando la combinación de intervalo corto y alto estrés indique alta probabilidad de caída en semáforo rojo.
+2. **Recomendador Adaptativo de Intervalos Óptimos:** Utilizar modelos de regresión o agrupamiento (Clustering K-Means) para aprender el ritmo biológico individual del usuario, sugiriendo períodos de recuperación personalizados sin caer en prescripciones rígidas universales.
+
+### 5. Ejecución del Módulo de IA (Scripts de las Clases 3 y 4)
+Para ejecutar los análisis localmente:
+```bash
+# Actividad Clase 3: Lectura, estadísticas y generación de informe_proyecto.md
+python analisis_proyecto.py
+
+# Actividad Clase 4: Análisis exploratorio con NumPy y generación de gráficos PNG
+python eda_proyecto.py
+```
+O mediante el servicio Docker de IA configurado en `docker-compose.yml`:
+```bash
+docker compose run --rm python_ia python eda_proyecto.py
+```
+
+---
+
 ## 🛠️ Instalación y Despliegue Local
 
 ### Requisitos

@@ -1,0 +1,18 @@
+FROM python:3.12-slim
+WORKDIR /app
+
+# 1. Crear el entorno virtual en una ruta limpia
+RUN python -m venv /opt/venv
+
+# 2. Activar el entorno virtual agregándolo al PATH
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements.txt .
+
+# 3. Instalación de dependencias de IA (NumPy, Matplotlib)
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 4. Copia del código y datasets
+COPY . .
+
+CMD ["python", "eda_proyecto.py"]
