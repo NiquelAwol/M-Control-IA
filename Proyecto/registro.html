@@ -237,14 +237,22 @@
     <script src="js/app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Establecer fecha y hora actual en el selector
+            // Establecer fecha y hora actual en el selector o leer query param ?fecha=
+            const urlParams = new URLSearchParams(window.location.search);
+            const fechaParam = urlParams.get('fecha');
+
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('fecha').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+            if (fechaParam) {
+                document.getElementById('fecha').value = `${fechaParam}T${hours}:${minutes}`;
+            } else {
+                document.getElementById('fecha').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
 
             // Escuchar cambios en el formulario para vista previa en vivo
             const form = document.getElementById('form-registro');

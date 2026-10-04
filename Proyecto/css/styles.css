@@ -18,6 +18,10 @@
     --color-yellow-bg: rgba(245, 158, 11, 0.15);
     --color-yellow-border: #d97706;
     
+    --color-orange: #f97316;
+    --color-orange-bg: rgba(249, 115, 22, 0.15);
+    --color-orange-border: #ea580c;
+    
     --color-red: #ef4444;
     --color-red-bg: rgba(239, 68, 68, 0.15);
     --color-red-border: #dc2626;
@@ -247,19 +251,25 @@ body {
     margin-bottom: 1rem;
 }
 
-.status-badge.green {
+.status-badge.green, .status-badge.verde {
     background-color: var(--color-green-bg);
     color: var(--color-green);
     border: 1px solid var(--color-green-border);
 }
 
-.status-badge.yellow {
+.status-badge.yellow, .status-badge.amarillo {
     background-color: var(--color-yellow-bg);
     color: var(--color-yellow);
     border: 1px solid var(--color-yellow-border);
 }
 
-.status-badge.red {
+.status-badge.orange, .status-badge.naranja {
+    background-color: var(--color-orange-bg);
+    color: var(--color-orange);
+    border: 1px solid var(--color-orange-border);
+}
+
+.status-badge.red, .status-badge.rojo {
     background-color: var(--color-red-bg);
     color: var(--color-red);
     border: 1px solid var(--color-red-border);
@@ -272,9 +282,10 @@ body {
     display: inline-block;
 }
 
-.status-indicator-dot.green { background-color: var(--color-green); box-shadow: 0 0 8px var(--color-green); }
-.status-indicator-dot.yellow { background-color: var(--color-yellow); box-shadow: 0 0 8px var(--color-yellow); }
-.status-indicator-dot.red { background-color: var(--color-red); box-shadow: 0 0 8px var(--color-red); }
+.status-indicator-dot.green, .status-indicator-dot.verde { background-color: var(--color-green); box-shadow: 0 0 8px var(--color-green); }
+.status-indicator-dot.yellow, .status-indicator-dot.amarillo { background-color: var(--color-yellow); box-shadow: 0 0 8px var(--color-yellow); }
+.status-indicator-dot.orange, .status-indicator-dot.naranja { background-color: var(--color-orange); box-shadow: 0 0 8px var(--color-orange); }
+.status-indicator-dot.red, .status-indicator-dot.rojo { background-color: var(--color-red); box-shadow: 0 0 8px var(--color-red); }
 
 /* Métricas Rápidas */
 .metric-box {
@@ -473,17 +484,22 @@ body {
     border: 2px solid var(--accent);
 }
 
-.calendar-day-cell.green {
+.calendar-day-cell.green, .calendar-day-cell.verde {
     background-color: var(--color-green-bg);
     border-color: var(--color-green-border);
 }
 
-.calendar-day-cell.yellow {
+.calendar-day-cell.yellow, .calendar-day-cell.amarillo {
     background-color: var(--color-yellow-bg);
     border-color: var(--color-yellow-border);
 }
 
-.calendar-day-cell.red {
+.calendar-day-cell.orange, .calendar-day-cell.naranja {
+    background-color: var(--color-orange-bg);
+    border-color: var(--color-orange-border);
+}
+
+.calendar-day-cell.red, .calendar-day-cell.rojo {
     background-color: var(--color-red-bg);
     border-color: var(--color-red-border);
 }

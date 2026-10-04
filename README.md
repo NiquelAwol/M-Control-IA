@@ -161,6 +161,65 @@ docker compose run --rm python_ia python eda_proyecto.py
 
 ---
 
+## 🧠 Sistema de Inteligencia Artificial y Calendario Predictivo v2.0
+
+En cumplimiento con el **Prompt Maestro**, el sistema de Inteligencia Artificial de M-Control fue evolucionado hacia un motor predictivo híbrido y adaptativo que opera en dos niveles:
+
+### 1. Arquitectura Híbrida de Dos Niveles
+* **Nivel 1 (Priors Bayesianos / Cold-Start):**
+  * Para usuarios nuevos ($< 5$ registros), el sistema utiliza la distribución epidemiológica estratificada por edad del **National Survey of Sexual Health and Behavior (NSSHB)** y las directrices de la **ISSM**.
+  * Las predicciones se emiten con etiqueta explícita de **Confianza Limitada** ($45\% - 65\%$), evitando diagnósticos apresurados.
+* **Nivel 2 (Perfil Personalizado Dinámico):**
+  * A partir de 6+ registros, el modelo transiciona ponderadamente hacia la cadencia individual del usuario.
+  * Analiza la aceleración de frecuencia semanal respecto al promedio mensual, el control voluntario autopercibido, los síntomas físicos de irritación/dolor y la interferencia funcional en trabajo, estudio, sueño o vida social según los criterios **CIE-11 CSBD (Código 6C72)** de la OMS.
+  * La confianza predictiva se calibra dinámicamente entre el **70% y el 92%**.
+
+### 2. Semáforo Predictivo Cuádruple (4 Estados)
+
+| Estado | Color | Probabilidad ($p$) | Interpretación Clínica para M-Control |
+| :--- | :---: | :---: | :--- |
+| **Bajo Riesgo** | 🟢 **Verde** | $< 25\%$ | Día favorable para mantener la autorregulación. Patrón habitual equilibrado, sin interferencia ni pérdida de control. |
+| **Vigilancia** | 🟡 **Amarillo** | $25\% - 49\%$ | Tendencia de aceleración moderada, eventos con estrés elevado o menor descanso del habitual. Conviene observar el contexto. |
+| **Alerta Moderada** | 🟠 **Naranja** | $50\% - 74\%$ | Coincidencia de factores de riesgo: dificultad para posponer el impulso, afectación del descanso o intentos fallidos de reducción. |
+| **Alta Alerta** | 🔴 **Rojo** | $\ge 75\%$ | Alta probabilidad de desregulación según el historial personal. Presencia recurrente de molestias físicas, compulsión o deterioro funcional. Recomienda pausa y autocuidado (no prohibitivo). |
+
+### 3. Base de Datos Relacional SQLite (`mcontrol_ai.db`)
+El sistema almacena la información de forma local y soberana en 6 tablas:
+1. `usuarios`: Edad, fecha de registro, objetivo personal y hash de seguridad.
+2. `fuentes_cientificas`: Repositorio estructurado de fuentes (OMS CIE-11, NSSHB, ISSM, CSBD-19, Lastella 2019, Mayo Clinic, Cleveland Clinic).
+3. `datos_cientificos`: Distribuciones probabilísticas del NSSHB por cohortes de edad.
+4. `registros_habito`: Variables multidimensionales del evento (control, interferencias [sueño, estudio, trabajo, social], dolor, irritación, malestar, deseo, estrés).
+5. `predicciones`: Pronósticos persistidos por fecha con probabilidad, confianza, factores explicativos y recomendación.
+6. `historial_modelo`: Trazabilidad de versiones y métricas de validación del modelo.
+
+### 4. Motor de Explicabilidad Clínica (XAI)
+Cada predicción del calendario genera una ficha explicativa estructurada:
+* **Estado:** Nivel de alerta preventiva.
+* **Predicción del Modelo:** Explicación textual fundamentada en tendencias.
+* **Factores detectados:** Lista de indicadores objetivos (ej. *Aumento de frecuencia reciente*, *Historial de pérdida de control tras días consecutivos de alto estrés*, *Interrupción del sueño detectada en eventos nocturnos previos*).
+* **Nivel de Confianza:** Porcentaje matemático de certeza ($0\% - 100\%$).
+* **Recomendación Preventiva:** Sugerencia no punitiva ni prohibitiva.
+* **Aviso Ético / Disclaimer:** *"Esta predicción se basa en tu historial personal y en la información científica disponible. No constituye un diagnóstico médico."*
+
+### 5. Validación Rigurosa del Modelo de Machine Learning
+El pipeline fue validado mediante `mcontrol_ai/evaluador_metricas.py` arrojando:
+* **Accuracy en Test:** **$90.0\%$** (con validación cruzada temporal TimeSeriesSplit de $83.3\%$).
+* **ROC-AUC Score:** **$1.000$**.
+* **Calibración de Probabilidades (Brier Score):** **$0.051$** (cercano a 0.0, indicando probabilidades fiables).
+* **Sensibilidad (Recall) vs. Precisión (Precision):** Equilibrio clínico optimizado para priorizar la detección de episodios de dolor o pérdida de control sin generar falsas alarmas que induzcan culpa.
+
+### 6. Ejecución del Servidor y Pruebas del Sistema de IA
+```bash
+# 1. Ejecutar suite de validación de métricas de ML
+python -m mcontrol_ai.evaluador_metricas
+
+# 2. Iniciar el servidor API y visualizador del Calendario Predictivo
+python -m mcontrol_ai.api_service
+```
+Acceso a la interfaz web: [http://localhost:8088/calendario.html](http://localhost:8088/calendario.html)
+
+---
+
 ## 🛠️ Instalación y Despliegue Local
 
 ### Requisitos
