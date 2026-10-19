@@ -140,6 +140,21 @@
                     <span style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-status-modelo">Cargando modelo...</span>
                 </div>
             </div>
+
+            <!-- Barra del Participante Activo -->
+            <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.85rem;">
+                <div>
+                    👤 <strong>Participante Activo:</strong> <span id="cal-user-alias" style="color: var(--accent); font-weight: 700;">Participante 1</span> <span id="cal-user-detail" style="color: var(--text-muted);">(Edad: 24 · 48 eventos)</span>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="window.openUserSwitcherModal()" style="font-size: 0.78rem;">
+                        Cambiar Participante ⇄
+                    </button>
+                    <a href="login.html" class="btn btn-secondary btn-sm" style="font-size: 0.78rem;">
+                        + Nuevo Perfil
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Leyenda del Semáforo Cuádruple Oficial -->
@@ -319,8 +334,12 @@
             const btnReset = document.getElementById('btn-reset-events');
             if (btnReset) {
                 btnReset.addEventListener('click', () => {
-                    if (confirm('¿Deseas restablecer los datos al estado base original?')) {
-                        localStorage.removeItem('mcontrol_events_data');
+                    const activeUser = window.StorageService.getCurrentUser();
+                    if (confirm(`¿Deseas restablecer los datos del perfil "${activeUser.alias}"?`)) {
+                        localStorage.removeItem('mcontrol_events_user_' + activeUser.id);
+                        if (activeUser.id === 1) {
+                            localStorage.removeItem('mcontrol_events_data');
+                        }
                         window.StorageService.init();
                         showToast('🔄 Datos restablecidos.');
                         cargarCalendarioConIA();
@@ -334,11 +353,18 @@
         });
 
         async function cargarCalendarioConIA() {
+            const activeUser = window.StorageService.getCurrentUser();
+            const userEvents = window.StorageService.getEvents(activeUser.id);
+            const aliasEl = document.getElementById('cal-user-alias');
+            const detailEl = document.getElementById('cal-user-detail');
+            if (aliasEl) aliasEl.innerText = activeUser.alias;
+            if (detailEl) detailEl.innerText = `(Edad: ${activeUser.edad || 24} · ${userEvents.length} eventos)`;
+
             document.getElementById('calendar-month-title').innerText = `${monthNames[currentMonth]} ${currentYear}`;
             document.getElementById('lbl-status-modelo').innerText = 'Consultando red neuronal / RF...';
 
             try {
-                const resp = await fetch(`/api/calendar?year=${currentYear}&month=${currentMonth + 1}`);
+                const resp = await fetch(`/api/calendar?year=${currentYear}&month=${currentMonth + 1}&user_id=${activeUser.id}`);
                 if (resp.ok) {
                     const data = await resp.json();
                     calendarDataCache = data;

@@ -70,6 +70,7 @@ def formatear_ficha_dia(prediccion: Dict[str, Any]) -> Dict[str, Any]:
         "confianza": round(conf, 3),
         "explicacion_principal": cfg["descripcion"],
         "factores_detectados": motivos,
+        "motivos": motivos,
         "recomendacion": recomendacion,
         "disclaimer": DISCLAIMER_MEDICO,
         "modelo_version": prediccion.get("modelo_version", "v2.0-hybrid")

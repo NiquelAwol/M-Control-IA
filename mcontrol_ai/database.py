@@ -45,12 +45,23 @@ def inicializar_base_datos(db_path: Optional[str] = None) -> str:
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        edad INTEGER NOT NULL,
+        alias TEXT NOT NULL DEFAULT 'Participante 1',
+        pin TEXT DEFAULT '1234',
+        edad INTEGER NOT NULL DEFAULT 24,
         fecha_registro TEXT NOT NULL,
         objetivo_personal TEXT NOT NULL DEFAULT 'Autorregulación',
         hash_seguridad TEXT
     );
     """)
+    # Asegurar columnas alias y pin en bases de datos ya existentes
+    try:
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN alias TEXT DEFAULT 'Participante 1';")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN pin TEXT DEFAULT '1234';")
+    except Exception:
+        pass
 
     # 2. Tabla de Fuentes Científicas
     cursor.execute("""
@@ -164,17 +175,93 @@ def inicializar_base_datos(db_path: Optional[str] = None) -> str:
             ))
         conn.commit()
 
-    # --- CREAR USUARIO POR DEFECTO SI NO EXISTE ---
+    # --- CREAR USUARIOS POR DEFECTO SI NO EXISTEN ---
     cursor.execute("SELECT COUNT(*) AS total FROM usuarios;")
     if cursor.fetchone()["total"] == 0:
+        ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cursor.execute("""
-        INSERT INTO usuarios (id, edad, fecha_registro, objetivo_personal, hash_seguridad)
-        VALUES (1, 24, ?, 'Autorregulación y Bienestar', 'anon_hash_mcontrol_user1')
-        """, (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),))
+        INSERT INTO usuarios (id, alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad)
+        VALUES (1, 'Participante 1', '1234', 24, ?, 'Autorregulación y Bienestar', 'anon_hash_user1')
+        """, (ahora_str,))
+        cursor.execute("""
+        INSERT INTO usuarios (id, alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad)
+        VALUES (2, 'Participante 2', '1234', 21, ?, 'Reducir Frecuencia y Mejorar Sueño', 'anon_hash_user2')
+        """, (ahora_str,))
+        cursor.execute("""
+        INSERT INTO usuarios (id, alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad)
+        VALUES (3, 'Participante 3', '1234', 28, ?, 'Observar Patrones de Estrés', 'anon_hash_user3')
+        """, (ahora_str,))
+        conn.commit()
+    else:
+        # Asegurar alias si algún usuario tenía valor nulo
+        cursor.execute("UPDATE usuarios SET alias = 'Participante ' || id WHERE alias IS NULL OR alias = '';")
+        cursor.execute("UPDATE usuarios SET pin = '1234' WHERE pin IS NULL OR pin = '';")
         conn.commit()
 
     conn.close()
     return path
+
+
+def listar_usuarios(db_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Retorna todos los usuarios registrados con su conteo de eventos."""
+    conn = obtener_conexion(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT u.id, u.alias, u.edad, u.objetivo_personal, u.fecha_registro,
+           COUNT(r.id) AS total_eventos
+    FROM usuarios u
+    LEFT JOIN registros_habito r ON u.id = r.usuario_id
+    GROUP BY u.id
+    ORDER BY u.id ASC
+    """)
+    rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return rows
+
+
+def obtener_usuario(usuario_id: int, db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Retorna el perfil de un usuario por su ID."""
+    conn = obtener_conexion(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, alias, edad, objetivo_personal, fecha_registro FROM usuarios WHERE id = ?", (usuario_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def autenticar_usuario(alias: str, pin: str = "1234", db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Autentica a un usuario por alias y PIN."""
+    conn = obtener_conexion(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT id, alias, edad, objetivo_personal, fecha_registro 
+    FROM usuarios 
+    WHERE LOWER(alias) = LOWER(?) AND (pin = ? OR pin IS NULL)
+    """, (alias.strip(), pin.strip()))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def crear_usuario(alias: str, edad: int = 24, objetivo_personal: str = "Autorregulación", pin: str = "1234", db_path: Optional[str] = None) -> Dict[str, Any]:
+    """Crea un nuevo usuario en la base de datos."""
+    conn = obtener_conexion(db_path)
+    cursor = conn.cursor()
+    ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute("""
+    INSERT INTO usuarios (alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad)
+    VALUES (?, ?, ?, ?, ?, ?)
+    """, (alias.strip(), pin.strip(), edad, ahora_str, objetivo_personal.strip(), f"hash_{alias.strip().lower()}"))
+    nuevo_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return {
+        "id": nuevo_id,
+        "alias": alias.strip(),
+        "edad": edad,
+        "objetivo_personal": objetivo_personal.strip(),
+        "fecha_registro": ahora_str
+    }
 
 
 def sembrar_datos_iniciales(usuario_id: int = 1, db_path: Optional[str] = None) -> int:

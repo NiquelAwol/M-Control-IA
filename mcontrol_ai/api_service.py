@@ -21,7 +21,10 @@ from typing import Any, Dict
 
 from .base_conocimiento import obtener_fuentes, DATOS_POBLACIONALES_NSSHB
 from .calendar_predictor import PredictorCalendario
-from .database import insertar_registro, obtener_conexion, sembrar_datos_iniciales, inicializar_base_datos
+from .database import (
+    insertar_registro, obtener_conexion, sembrar_datos_iniciales, inicializar_base_datos,
+    listar_usuarios, obtener_usuario, autenticar_usuario, crear_usuario, obtener_registros_usuario
+)
 from .evaluador_metricas import ejecutar_suite_validacion
 from .ml_engine import MotorML
 from .privacy import exportar_datos_usuario_json, purgar_datos_usuario
@@ -58,43 +61,58 @@ class MControlAPIHandler(SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         params = urllib.parse.parse_qs(parsed.query)
 
-        # 1. Calendario predictivo
+        # 1. Calendario predictivo por usuario
         if parsed.path == "/api/calendar":
             año = int(params.get("year", [datetime.now().year])[0])
             mes = int(params.get("month", [datetime.now().month])[0])
-            predictor = PredictorCalendario(usuario_id=1)
+            usuario_id = int(params.get("user_id", params.get("usuario_id", [1]))[0])
+            predictor = PredictorCalendario(usuario_id=usuario_id)
             calendario_data = predictor.generar_calendario_mes(año, mes)
             return self._responder_json(calendario_data)
 
-        # 2. Predicción de un día específico
+        # 2. Listado de usuarios / perfiles registrados
+        elif parsed.path == "/api/users":
+            usuarios = listar_usuarios()
+            return self._responder_json(usuarios)
+
+        # 3. Predicción de un día específico
         elif parsed.path == "/api/prediction":
             fecha_str = params.get("date", [datetime.now().strftime("%Y-%m-%d")])[0]
+            usuario_id = int(params.get("user_id", params.get("usuario_id", [1]))[0])
             try:
                 dt = datetime.strptime(fecha_str, "%Y-%m-%d")
             except Exception:
                 dt = datetime.now()
-            predictor = PredictorCalendario(usuario_id=1)
+            predictor = PredictorCalendario(usuario_id=usuario_id)
             cal = predictor.generar_calendario_mes(dt.year, dt.month)
             for d in cal["dias"]:
                 if d["fecha"] == fecha_str:
                     return self._responder_json(d)
             return self._responder_json({"error": "Día no encontrado"}, 404)
 
-        # 3. Base de conocimiento científico
+        # 4. Registros históricos del usuario
+        elif parsed.path == "/api/records":
+            usuario_id = int(params.get("user_id", params.get("usuario_id", [1]))[0])
+            registros = obtener_registros_usuario(usuario_id)
+            return self._responder_json(registros)
+
+        # 5. Base de conocimiento científico
         elif parsed.path == "/api/knowledge-base":
             return self._responder_json({
                 "fuentes": obtener_fuentes(),
                 "nsshb_cohortes": DATOS_POBLACIONALES_NSSHB
             })
 
-        # 4. Métricas de validación del modelo de IA
+        # 6. Métricas de validación del modelo de IA por usuario
         elif parsed.path == "/api/metrics":
-            metricas = ejecutar_suite_validacion(usuario_id=1)
+            usuario_id = int(params.get("user_id", params.get("usuario_id", [1]))[0])
+            metricas = ejecutar_suite_validacion(usuario_id=usuario_id)
             return self._responder_json(metricas)
 
-        # 5. Exportar datos JSON del usuario
+        # 7. Exportar datos JSON del usuario
         elif parsed.path == "/api/export":
-            export_str = exportar_datos_usuario_json(usuario_id=1)
+            usuario_id = int(params.get("user_id", params.get("usuario_id", [1]))[0])
+            export_str = exportar_datos_usuario_json(usuario_id=usuario_id)
             return self._responder_json(json.loads(export_str))
 
         # En caso contrario, servir archivo estático desde Proyecto/
@@ -104,7 +122,7 @@ class MControlAPIHandler(SimpleHTTPRequestHandler):
         """Maneja solicitudes POST (registro de eventos o entrenamiento)."""
         parsed = urllib.parse.urlparse(self.path)
 
-        if parsed.path == "/api/records":
+        if parsed.path == "/api/users/login":
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length).decode("utf-8")
             try:
@@ -112,28 +130,64 @@ class MControlAPIHandler(SimpleHTTPRequestHandler):
             except Exception:
                 return self._responder_json({"error": "JSON malformado"}, 400)
 
-            reg_id = insertar_registro(1, datos)
+            alias = datos.get("alias", "").strip()
+            pin = str(datos.get("pin", "1234")).strip()
+            usuario = autenticar_usuario(alias, pin)
+            if usuario:
+                return self._responder_json({"status": "ok", "user": usuario})
+            else:
+                # Si no existe, crearlo automáticamente para facilitar onboarding de participantes
+                nuevo_user = crear_usuario(alias, edad=int(datos.get("edad", 24)), objetivo_personal=datos.get("objetivo", "Autorregulación"), pin=pin)
+                return self._responder_json({"status": "ok", "user": nuevo_user, "nuevo": True}, 201)
 
-            # Re-entrenamiento incremental del modelo de Machine Learning
-            motor = MotorML(usuario_id=1)
+        elif parsed.path == "/api/users/register":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length).decode("utf-8")
+            try:
+                datos = json.loads(body)
+            except Exception:
+                return self._responder_json({"error": "JSON malformado"}, 400)
+
+            alias = datos.get("alias", f"Participante {len(listar_usuarios()) + 1}").strip()
+            edad = int(datos.get("edad", 24))
+            objetivo = datos.get("objetivo", "Autorregulación y Bienestar").strip()
+            pin = str(datos.get("pin", "1234")).strip()
+            nuevo_user = crear_usuario(alias, edad, objetivo, pin)
+            return self._responder_json({"status": "ok", "user": nuevo_user}, 201)
+
+        elif parsed.path == "/api/records":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length).decode("utf-8")
+            try:
+                datos = json.loads(body)
+            except Exception:
+                return self._responder_json({"error": "JSON malformado"}, 400)
+
+            usuario_id = int(datos.get("usuario_id", datos.get("user_id", 1)))
+            reg_id = insertar_registro(usuario_id, datos)
+
+            # Re-entrenamiento incremental del modelo de Machine Learning para este usuario
+            motor = MotorML(usuario_id=usuario_id)
             metricas_entrenamiento = motor.entrenar_modelo()
 
             # Re-generar predicciones del mes actual
-            predictor = PredictorCalendario(usuario_id=1)
+            predictor = PredictorCalendario(usuario_id=usuario_id)
             ahora = datetime.now()
             predictor.generar_calendario_mes(ahora.year, ahora.month)
 
             return self._responder_json({
                 "status": "ok",
                 "registro_id": reg_id,
+                "usuario_id": usuario_id,
                 "mensaje": "Evento guardado y modelo re-calibrado con éxito",
                 "metricas_modelo": metricas_entrenamiento
             }, 201)
 
         elif parsed.path == "/api/reset":
-            purgar_datos_usuario(1)
-            sembrar_datos_iniciales(1)
-            motor = MotorML(usuario_id=1)
+            usuario_id = 1
+            purgar_datos_usuario(usuario_id)
+            sembrar_datos_iniciales(usuario_id)
+            motor = MotorML(usuario_id=usuario_id)
             motor.entrenar_modelo()
             return self._responder_json({"status": "ok", "mensaje": "Datos restablecidos con éxito"})
 

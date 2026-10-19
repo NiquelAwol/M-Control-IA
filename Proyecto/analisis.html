@@ -48,7 +48,7 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">📊 Análisis de Patrones y Bienestar</h1>
-                <p class="page-subtitle">Indicadores estadísticos del modelo multidimensional de M-Control.</p>
+                <p class="page-subtitle">Indicadores estadísticos para: <strong id="analisis-user-alias" style="color: var(--accent);">Participante</strong> <a href="#" onclick="window.openUserSwitcherModal(); return false;" style="font-size: 0.8rem; color: var(--accent); margin-left: 6px;">[Cambiar participante]</a></p>
             </div>
             <div style="display: flex; gap: 0.5rem;">
                 <a href="registro.html" class="btn btn-success">➕ Registrar Evento</a>
@@ -219,6 +219,10 @@
     <script src="js/app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const curUser = window.StorageService.getCurrentUser();
+            const aliasEl = document.getElementById('analisis-user-alias');
+            if (aliasEl && curUser) aliasEl.innerText = curUser.alias;
+
             const events = window.StorageService.getEvents();
 
             const now = new Date();

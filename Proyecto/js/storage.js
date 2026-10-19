@@ -6,6 +6,16 @@
 
 const STORAGE_KEY_EVENTS = 'mcontrol_events_data';
 const STORAGE_KEY_SETTINGS = 'mcontrol_user_settings';
+const STORAGE_KEY_ACTIVE_USER = 'mcontrol_active_user_id';
+const STORAGE_KEY_USERS_LIST = 'mcontrol_users_list';
+const STORAGE_KEY_USER_EVENTS_PREFIX = 'mcontrol_events_user_';
+const STORAGE_KEY_USER_SETTINGS_PREFIX = 'mcontrol_settings_user_';
+
+const DEFAULT_USERS = [
+    { id: 1, alias: 'Participante 1 (Principal)', edad: 24, objetivo: 'autorregulacion', pin: '1234', fecha: '2026-07-01' },
+    { id: 2, alias: 'Participante 2 (Nuevo)', edad: 22, objetivo: 'autorregulacion', pin: '1234', fecha: '2026-10-01' },
+    { id: 3, alias: 'Participante 3 (Nuevo)', edad: 28, objetivo: 'estres', pin: '1234', fecha: '2026-10-01' }
+];
 
 // Datos longitudinales representativos (Julio - Octubre 2026) sincronizados con la base de datos
 const DEFAULT_EVENTS = [
@@ -176,31 +186,141 @@ const DEFAULT_SETTINGS = {
 
 const StorageService = {
     init() {
-        if (!localStorage.getItem(STORAGE_KEY_EVENTS)) {
-            localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(DEFAULT_EVENTS));
+        // 1. Inicializar lista de usuarios / participantes
+        if (!localStorage.getItem(STORAGE_KEY_USERS_LIST)) {
+            localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(DEFAULT_USERS));
         }
+
+        // 2. Participante activo por defecto: 1
+        if (!localStorage.getItem(STORAGE_KEY_ACTIVE_USER)) {
+            localStorage.setItem(STORAGE_KEY_ACTIVE_USER, '1');
+        }
+
+        // 3. Inicializar historial de eventos para el Usuario 1 (compatibilidad)
+        const user1Key = STORAGE_KEY_USER_EVENTS_PREFIX + '1';
+        if (!localStorage.getItem(user1Key)) {
+            const legacy = localStorage.getItem(STORAGE_KEY_EVENTS);
+            const initialData = legacy ? JSON.parse(legacy) : DEFAULT_EVENTS;
+            localStorage.setItem(user1Key, JSON.stringify(initialData));
+            localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(initialData));
+        }
+
+        // 4. Configuración inicial
         if (!localStorage.getItem(STORAGE_KEY_SETTINGS)) {
             localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
         }
     },
 
-    getEvents() {
+    // ==========================================
+    // GESTIÓN DE PARTICIPANTES / MULTI-USUARIO
+    // ==========================================
+    getUsers() {
         this.init();
         try {
-            const data = JSON.parse(localStorage.getItem(STORAGE_KEY_EVENTS));
-            return data.sort((a, b) => new Date(b.date) - new Date(a.date));
+            return JSON.parse(localStorage.getItem(STORAGE_KEY_USERS_LIST)) || DEFAULT_USERS;
         } catch (e) {
-            console.error('Error al leer eventos:', e);
-            return DEFAULT_EVENTS;
+            return DEFAULT_USERS;
         }
     },
 
-    saveEvent(eventData) {
-        const events = this.getEvents();
+    getActiveUserId() {
+        this.init();
+        const raw = localStorage.getItem(STORAGE_KEY_ACTIVE_USER);
+        return raw ? parseInt(raw, 10) : 1;
+    },
+
+    getCurrentUser() {
+        const users = this.getUsers();
+        const activeId = this.getActiveUserId();
+        return users.find(u => u.id === activeId) || users[0] || { id: 1, alias: 'Participante 1', edad: 24, objetivo: 'autorregulacion' };
+    },
+
+    setCurrentUser(userId) {
+        this.init();
+        const idNum = parseInt(userId, 10);
+        localStorage.setItem(STORAGE_KEY_ACTIVE_USER, String(idNum));
+        const user = this.getCurrentUser();
+        window.dispatchEvent(new CustomEvent('mcontrol:userChanged', { detail: { userId: idNum, user } }));
+        return user;
+    },
+
+    registerUser(alias, edad = 24, objetivo = 'autorregulacion', pin = '1234') {
+        this.init();
+        const users = this.getUsers();
+        const maxId = users.reduce((max, u) => Math.max(max, u.id || 0), 0);
+        const newUser = {
+            id: maxId + 1,
+            alias: alias.trim() || `Participante ${maxId + 1}`,
+            edad: parseInt(edad, 10) || 24,
+            objetivo: objetivo.trim() || 'autorregulacion',
+            pin: String(pin).trim() || '1234',
+            fecha: new Date().toISOString().split('T')[0]
+        };
+
+        users.push(newUser);
+        localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(users));
+        // Inicializar eventos vacíos para el nuevo participante
+        localStorage.setItem(STORAGE_KEY_USER_EVENTS_PREFIX + newUser.id, JSON.stringify([]));
+        this.setCurrentUser(newUser.id);
+
+        // Notificar opcionalmente al backend de IA
+        try {
+            fetch('/api/users/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    alias: newUser.alias,
+                    edad: newUser.edad,
+                    objetivo: newUser.objetivo,
+                    pin: newUser.pin
+                })
+            }).catch(() => {});
+        } catch (e) {}
+
+        return newUser;
+    },
+
+    loginUser(alias, pin = '1234') {
+        this.init();
+        const users = this.getUsers();
+        const cleanAlias = alias.trim().toLowerCase();
+        let user = users.find(u => u.alias.toLowerCase() === cleanAlias);
+        if (user) {
+            this.setCurrentUser(user.id);
+            return user;
+        }
+        // Si no existe, crear participante automáticamente para experiencia sin fricción
+        return this.registerUser(alias, 24, 'autorregulacion', pin);
+    },
+
+    // ==========================================
+    // HISTORIAL DE EVENTOS AISLADO POR USUARIO
+    // ==========================================
+    getEvents(userId = null) {
+        this.init();
+        const uid = userId !== null ? parseInt(userId, 10) : this.getActiveUserId();
+        const key = STORAGE_KEY_USER_EVENTS_PREFIX + uid;
+        try {
+            let raw = localStorage.getItem(key);
+            if (!raw && uid === 1) {
+                raw = localStorage.getItem(STORAGE_KEY_EVENTS);
+            }
+            const data = raw ? JSON.parse(raw) : [];
+            return data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        } catch (e) {
+            console.error('Error al leer eventos:', e);
+            return uid === 1 ? DEFAULT_EVENTS : [];
+        }
+    },
+
+    saveEvent(eventData, userId = null) {
+        const uid = userId !== null ? parseInt(userId, 10) : this.getActiveUserId();
+        const key = STORAGE_KEY_USER_EVENTS_PREFIX + uid;
+        const events = this.getEvents(uid);
         const evaluation = this.calculateWellness(eventData, events);
         
         const newEvent = {
-            id: 'evt-' + Date.now(),
+            id: 'evt-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
             date: eventData.date,
             control: eventData.control,
             interferencia: eventData.interferencia,
@@ -210,20 +330,27 @@ const StorageService = {
             notas: eventData.notas || '',
             score: evaluation.score,
             color: evaluation.color,
-            explicacion: evaluation.explicacion
+            explicacion: evaluation.explicacion,
+            usuario_id: uid
         };
 
         events.unshift(newEvent);
-        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(events));
+        localStorage.setItem(key, JSON.stringify(events));
 
-        // Notificar opcionalmente al backend de IA si está accesible
+        // Sincronizar en key global para compatibilidad si es usuario 1
+        if (uid === 1) {
+            localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(events));
+        }
+
+        // Notificar al backend de IA asociando el usuario_id correspondiente
         try {
             fetch('/api/records', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    usuario_id: uid,
                     fecha: eventData.date.split('T')[0],
-                    hora: eventData.date.split('T')[1] || '12:00',
+                    hora: eventData.date.includes('T') ? eventData.date.split('T')[1] : '12:00',
                     nivel_control: eventData.control === 'alto' ? 5 : (eventData.control === 'medio' ? 3 : 1),
                     interferencia_sueno: eventData.interferencia === 'severa' ? 2 : (eventData.interferencia === 'leve' ? 1 : 0),
                     dolor: eventData.sintomas === 'moderado_severo' ? 2 : (eventData.sintomas === 'leve' ? 1 : 0),
@@ -236,10 +363,40 @@ const StorageService = {
         return newEvent;
     },
 
-    deleteEvent(id) {
-        let events = this.getEvents();
+    deleteEvent(id, userId = null) {
+        const uid = userId !== null ? parseInt(userId, 10) : this.getActiveUserId();
+        const key = STORAGE_KEY_USER_EVENTS_PREFIX + uid;
+        let events = this.getEvents(uid);
         events = events.filter(e => e.id !== id);
-        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(events));
+        localStorage.setItem(key, JSON.stringify(events));
+        if (uid === 1) {
+            localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(events));
+        }
+    },
+
+    getSettings(userId = null) {
+        this.init();
+        const uid = userId !== null ? parseInt(userId, 10) : this.getActiveUserId();
+        const key = STORAGE_KEY_USER_SETTINGS_PREFIX + uid;
+        const curUser = this.getCurrentUser();
+        try {
+            const data = JSON.parse(localStorage.getItem(key));
+            if (data) return data;
+        } catch (e) {}
+        return {
+            ...DEFAULT_SETTINGS,
+            edad: curUser ? curUser.edad : 24,
+            objetivo: curUser ? curUser.objetivo : 'autorregulacion'
+        };
+    },
+
+    saveSettings(settings, userId = null) {
+        const uid = userId !== null ? parseInt(userId, 10) : this.getActiveUserId();
+        const key = STORAGE_KEY_USER_SETTINGS_PREFIX + uid;
+        localStorage.setItem(key, JSON.stringify(settings));
+        if (uid === 1) {
+            localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+        }
     },
 
     calculateWellness(current, pastEvents) {
@@ -308,14 +465,14 @@ const StorageService = {
         return { score, color, explicacion };
     },
 
-    generatePredictiveCalendar(year, month) {
+    generatePredictiveCalendar(year, month, userId = null) {
         // month es 1-indexed (1 = Enero, 10 = Octubre)
         const daysInMonth = new Date(year, month, 0).getDate();
         const firstDay = new Date(year, month - 1, 1);
         let startDayIndex = firstDay.getDay() - 1;
         if (startDayIndex === -1) startDayIndex = 6;
 
-        const allEvents = this.getEvents();
+        const allEvents = this.getEvents(userId);
         // Ordenar cronológicamente (más antiguo al más reciente)
         const sortedEvents = [...allEvents].sort((a, b) => new Date(a.date) - new Date(b.date));
 

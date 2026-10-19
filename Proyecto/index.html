@@ -35,9 +35,10 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">Panel de Autorregulación</h1>
-                <p class="page-subtitle">Seguimiento inteligente basado en evidencia científica, no en prohibiciones ni culpas.</p>
+                <p class="page-subtitle">Seguimiento inteligente para: <strong id="home-user-alias" style="color: var(--accent);">Participante</strong> <a href="#" onclick="window.openUserSwitcherModal(); return false;" style="font-size: 0.8rem; color: var(--accent); margin-left: 6px;">[Cambiar participante]</a></p>
             </div>
-            <div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="login.html" class="btn btn-secondary">👤 Perfiles</a>
                 <a href="registro.html" class="btn btn-success">➕ Nuevo Registro Rápido</a>
             </div>
         </div>
@@ -164,6 +165,10 @@
     <script src="js/app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const curUser = window.StorageService.getCurrentUser();
+            const aliasEl = document.getElementById('home-user-alias');
+            if (aliasEl && curUser) aliasEl.innerText = curUser.alias;
+
             const events = window.StorageService.getEvents();
 
             // Calcular métricas

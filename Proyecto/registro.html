@@ -41,6 +41,16 @@
             </div>
         </div>
 
+        <!-- Banner del Participante Activo -->
+        <div class="callout callout-info" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+                👤 <strong>Registrando para:</strong> <span id="reg-active-alias" style="color: var(--accent); font-weight: 700;">Participante 1</span> <span id="reg-active-info" style="color: var(--text-secondary); font-size: 0.85rem;">(Edad: 24 · Autorregulación)</span>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="window.openUserSwitcherModal()" style="font-size: 0.8rem;">
+                Cambiar Participante ⇄
+            </button>
+        </div>
+
         <div class="grid-2">
             <!-- Formulario de Registro -->
             <div class="card">
@@ -237,6 +247,13 @@
     <script src="js/app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Mostrar participante activo
+            const curUser = window.StorageService.getCurrentUser();
+            const aliasEl = document.getElementById('reg-active-alias');
+            const infoEl = document.getElementById('reg-active-info');
+            if (aliasEl && curUser) aliasEl.innerText = curUser.alias;
+            if (infoEl && curUser) infoEl.innerText = `(Edad: ${curUser.edad || 24} · ${curUser.objetivo || 'Autorregulación'})`;
+
             // Establecer fecha y hora actual en el selector o leer query param ?fecha=
             const urlParams = new URLSearchParams(window.location.search);
             const fechaParam = urlParams.get('fecha');

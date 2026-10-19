@@ -691,6 +691,130 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ==========================================================================
+   Sistema Multi-Usuario / Gestión de Participantes
+   ========================================================================== */
+.user-nav-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid var(--accent);
+    color: var(--text-primary);
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.user-nav-badge:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+.user-avatar-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: var(--color-green);
+    display: inline-block;
+    box-shadow: 0 0 6px var(--color-green);
+}
+
+.user-card-item {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-bottom: 0.6rem;
+}
+
+.user-card-item:hover {
+    background: rgba(51, 65, 85, 0.8);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+
+.user-card-item.active {
+    border-color: var(--color-green);
+    background: rgba(16, 185, 129, 0.12);
+}
+
+.user-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.user-alias-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.user-subtext {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.user-chip-count {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    font-weight: 600;
+}
+
+/* Estilos de la página de Login */
+.login-wrapper {
+    max-width: 580px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.login-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.login-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.login-tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
+}
+
+.login-tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
 @media (max-width: 768px) {
     .navbar {
         padding: 0.75rem 1rem;
