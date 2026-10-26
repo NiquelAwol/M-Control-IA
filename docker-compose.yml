@@ -11,7 +11,7 @@ services:
     volumes:
       - ./Proyecto:/usr/share/nginx/html:ro
 
-  # Servicio de Inteligencia Artificial y EDA (Python 3.12, NumPy, Matplotlib)
+  # Servicio de Inteligencia Artificial (Pandas, Seaborn, Perceptrón con NumPy)
   python_ia:
     build:
       context: .
@@ -19,4 +19,4 @@ services:
     container_name: python_ia
     volumes:
       - .:/app
-    command: python eda_proyecto.py
+    command: python perceptron_proyecto.py

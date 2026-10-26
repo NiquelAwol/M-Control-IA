@@ -12,6 +12,59 @@ El sistema rechaza la pseudociencia, los conteos punitivos de abstinencia y el s
 
 ---
 
+## 🧠 Avance 2 - Machine Learning: Preparación de Datos y Perceptrón desde Cero
+
+Este avance corresponde a las **Clases 7, 8 y 9** de la asignatura **Inteligencia Artificial** (Ingeniería de Sistemas - Docente: Jhon James Cano Sánchez). Se implementa el pipeline de preparación de datos con Pandas, análisis visual con Seaborn y el primer modelo predictivo construido desde cero con NumPy (sin Scikit-Learn).
+
+### 1. Resumen de Resultados del Perceptrón
+* **Tasa de Aprendizaje (alpha):** 0.20
+* **Épocas:** 1500 (convergencia monótona con Batch Gradient Descent)
+* **Pérdida Logarítmica (BCE):** Inicial 0.6955 -> Final **0.0351**
+* **Exactitud (Accuracy):** **100.00%** en clasificación binaria
+* **Pesos Finales y Sesgo:**
+  * w1 = **-2.2409** (intervalo_horas): Signo **negativo**, opera como factor protector (a mayor descanso biológico, menor riesgo de alerta).
+  * w2 = **+6.5796** (nivel_estres): Signo **positivo**, opera como factor de riesgo detonante (a mayor estrés previo, mayor probabilidad de desregulación).
+  * b = **-2.4070** (Sesgo/Bias): Calibra el umbral de activación hacia el balance autorregulado.
+
+### 2. Estructura de Scripts y Datos del Avance
+* **preparacion_datos.py (Clase 7 - Pandas):** Inspección de shape, info(), nulos, duplicados; normalización de tipos; codificación de categorías con pd.get_dummies; exportación a data/mcontrol_limpio.csv y tabla comparativa antes/después.
+* **isualizacion_seaborn.py (Clase 7 - Seaborn):** Generación de 3 gráficos analíticos (grafico1_dispersion_objetivo.png, grafico2_boxplot_interferencia.png, grafico3_matriz_correlacion.png) con interpretación orientada a decisiones de diseño.
+* **perceptron_proyecto.py (Clases 8 y 9 - Perceptrón NumPy):** Implementación desde cero de sigmoide, Binary Cross-Entropy Loss, cálculo analítico de gradientes, curva de aprendizaje (curva_aprendizaje_perceptron.png) y frontera de decisión (rontera_decision_perceptron.png).
+* **data/mcontrol_limpio.csv:** Dataset limpio exportado con 45 registros y 15 columnas preparadas.
+
+### 3. Instrucciones de Ejecución
+
+#### Opción A: Ejecución con Docker (Requisito Oficial de Sustentación)
+`ash
+# 1. Construir la imagen del entorno de IA
+docker compose build python_ia
+
+# 2. Ejecutar la preparación de datos (Pandas)
+docker compose run --rm python_ia python preparacion_datos.py
+
+# 3. Generar visualizaciones con Seaborn
+docker compose run --rm python_ia python visualizacion_seaborn.py
+
+# 4. Ejecutar el Perceptrón desde cero (Curva y Frontera)
+docker compose run --rm python_ia python perceptron_proyecto.py
+
+# 5. O ingresar a la terminal interactiva dentro del contenedor (prompt: root@...:/app#)
+docker compose run --rm python_ia /bin/bash
+`
+
+#### Opción B: Ejecución Local en Python (Directo)
+`ash
+# Instalar dependencias requeridas
+pip install -r requirements.txt
+
+# Ejecutar el pipeline completo
+python preparacion_datos.py
+python visualizacion_seaborn.py
+python perceptron_proyecto.py
+`
+
+---
+
 ## 🎯 Arquitectura del Proyecto
 
 El sistema fue migrado y reestructurado como una aplicación **Full-Stack en Laravel**, desacoplada y contenerizada con Docker para convivir en paralelo con otros servicios (SGE y ProcessMaker):
