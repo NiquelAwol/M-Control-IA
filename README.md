@@ -8,60 +8,35 @@
 
 Plataforma web de autorregulación y monitoreo del bienestar masculino, sustentada en evidencia médica oficial y criterios clínicos internacionales (**Organización Mundial de la Salud - ICD-11 CSBD**, **Sociedad Internacional de Medicina Sexual - ISSM** y **Cleveland Clinic**).
 
-El sistema rechaza la pseudociencia, los conteos punitivos de abstinencia y el sentimiento de culpa, ofreciendo un enfoque holístico de salud basado en la **interferencia funcional**, el **control autopercibido**, las **molestias físicas** y el **estrés emocional**.
-
 ---
 
 ## 🧠 Avance 2 - Machine Learning: Preparación de Datos y Perceptrón desde Cero
 
 Este avance corresponde a las **Clases 7, 8 y 9** de la asignatura **Inteligencia Artificial** (Ingeniería de Sistemas - Docente: Jhon James Cano Sánchez). Se implementa el pipeline de preparación de datos con Pandas, análisis visual con Seaborn y el primer modelo predictivo construido desde cero con NumPy (sin Scikit-Learn).
 
-### 1. Resumen de Resultados del Perceptrón
-* **Tasa de Aprendizaje (alpha):** 0.20
-* **Épocas:** 1500 (convergencia monótona con Batch Gradient Descent)
-* **Pérdida Logarítmica (BCE):** Inicial 0.6955 -> Final **0.0351**
-* **Exactitud (Accuracy):** **100.00%** en clasificación binaria
+### 1. Resumen de Resultados del Perceptrón (src/perceptron_proyecto.py)
+* **Variable Objetivo (0/1):** requiere_pausa (1 si puntuacion_bienestar < 70, 0 si >= 70; puntuacion_bienestar se excluye de las entradas para evitar fuga de datos / data leakage).
+* **Variables de Entrada Estandarizadas (z-score):** intervalo_horas y nivel_estres.
+* **Tasa de Aprendizaje (alpha):** 0.20 · **Épocas:** 1500 (Batch Gradient Descent en NumPy)
+* **Pérdida Logarítmica (BCE):** Inicial 0.6954 -> Final **0.1743**
+* **Exactitud (Accuracy):** **93.62%** (44/47 registros clasificados correctamente)
 * **Pesos Finales y Sesgo:**
-  * w1 = **-2.2409** (intervalo_horas): Signo **negativo**, opera como factor protector (a mayor descanso biológico, menor riesgo de alerta).
-  * w2 = **+6.5796** (nivel_estres): Signo **positivo**, opera como factor de riesgo detonante (a mayor estrés previo, mayor probabilidad de desregulación).
-  * b = **-2.4070** (Sesgo/Bias): Calibra el umbral de activación hacia el balance autorregulado.
+  * w1 = **-2.6286** (intervalo_horas): Signo **negativo**, opera como factor protector (a mayor descanso biológico, menor riesgo de alerta).
+  * w2 = **+3.6406** (nivel_estres): Signo **positivo**, opera como factor de riesgo detonante (a mayor estrés previo, mayor probabilidad de desregulación).
+  * b = **-1.0826** (Sesgo/Bias): Calibra el umbral de activación hacia el balance autorregulado.
 
-### 2. Estructura de Scripts y Datos del Avance
-* **preparacion_datos.py (Clase 7 - Pandas):** Inspección de shape, info(), nulos, duplicados; normalización de tipos; codificación de categorías con pd.get_dummies; exportación a data/mcontrol_limpio.csv y tabla comparativa antes/después.
-* **isualizacion_seaborn.py (Clase 7 - Seaborn):** Generación de 3 gráficos analíticos (grafico1_dispersion_objetivo.png, grafico2_boxplot_interferencia.png, grafico3_matriz_correlacion.png) con interpretación orientada a decisiones de diseño.
-* **perceptron_proyecto.py (Clases 8 y 9 - Perceptrón NumPy):** Implementación desde cero de sigmoide, Binary Cross-Entropy Loss, cálculo analítico de gradientes, curva de aprendizaje (curva_aprendizaje_perceptron.png) y frontera de decisión (rontera_decision_perceptron.png).
-* **data/mcontrol_limpio.csv:** Dataset limpio exportado con 45 registros y 15 columnas preparadas.
+### 2. Estructura de Scripts y Datos del Avance 2
+* **src/preparacion_datos.py (Clase 7 - Pandas):** Carga data/datos_mcontrol_crudo.csv (54 filas x 10 columnas), inspecciona shape, info(), nulos y duplicados; elimina 2 duplicados, 3 filas con nulos y 2 valores atípicos imposibles (-6.5h y estrés 15); unifica 6 categorías inconsistentes en estado_semaforo; codifica categóricas con pd.get_dummies; exporta a data/mcontrol_limpio.csv (47 filas x 14 columnas) e imprime la tabla comparativa Antes / Después.
+* **src/visualizacion_seaborn.py (Clase 7 - Seaborn):** Genera 3 gráficos estadísticos (grafico1_dispersion_objetivo.png, grafico2_boxplot_interferencia.png, grafico3_matriz_correlacion.png) con su interpretación de 2 a 4 líneas orientada a decisiones del proyecto.
+* **src/perceptron_proyecto.py (Clases 8 y 9 - Perceptrón NumPy):** Implementación desde cero de función sigmoide, Binary Cross-Entropy Loss, descenso del gradiente analítico, curva de aprendizaje (curva_aprendizaje_perceptron.png) y frontera de decisión (frontera_decision_perceptron.png).
 
-### 3. Instrucciones de Ejecución
-
-#### Opción A: Ejecución con Docker (Requisito Oficial de Sustentación)
-`ash
-# 1. Construir la imagen del entorno de IA
-docker compose build python_ia
-
-# 2. Ejecutar la preparación de datos (Pandas)
-docker compose run --rm python_ia python preparacion_datos.py
-
-# 3. Generar visualizaciones con Seaborn
-docker compose run --rm python_ia python visualizacion_seaborn.py
-
-# 4. Ejecutar el Perceptrón desde cero (Curva y Frontera)
-docker compose run --rm python_ia python perceptron_proyecto.py
-
-# 5. O ingresar a la terminal interactiva dentro del contenedor (prompt: root@...:/app#)
-docker compose run --rm python_ia /bin/bash
-`
-
-#### Opción B: Ejecución Local en Python (Directo)
-`ash
-# Instalar dependencias requeridas
-pip install -r requirements.txt
-
-# Ejecutar el pipeline completo
-python preparacion_datos.py
-python visualizacion_seaborn.py
-python perceptron_proyecto.py
-`
+### 3. Instrucciones de Ejecución en Contenedor Docker (Prompt /app/src#)
+    docker compose build python_ia
+    docker compose run --rm python_ia bash
+    # Dentro del contenedor (root@...:/app/src#):
+    python preparacion_datos.py
+    python visualizacion_seaborn.py
+    python perceptron_proyecto.py
 
 ---
 
