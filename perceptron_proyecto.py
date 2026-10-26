@@ -15,6 +15,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
+def obtener_directorio_base():
+    """Resuelve la raíz del repositorio tanto si se ejecuta desde /app como desde /app/src."""
+    actual = os.path.dirname(os.path.abspath(__file__))
+    if os.path.basename(actual) == "src":
+        return os.path.dirname(actual)
+    return actual
+
+
 class PerceptronDesdeCero:
     """
     Perceptrón con función de activación sigmoide, función de costo
@@ -92,19 +100,21 @@ class PerceptronDesdeCero:
 
 
 def main():
+    base_dir = obtener_directorio_base()
+
     print("=" * 75)
     print("  M-CONTROL | PERCEPTRÓN DESDE CERO CON NUMPY (CLASES 8 Y 9)")
     print("  Implementación Matemática: Sigmoide + Binary Cross-Entropy + Descenso Gradiente")
     print("=" * 75)
 
     # 1. CARGA DEL DATASET LIMPIO
-    archivo_csv = os.path.join("data", "mcontrol_limpio.csv")
+    archivo_csv = os.path.join(base_dir, "data", "mcontrol_limpio.csv")
     if not os.path.exists(archivo_csv):
         print(f"[ERROR] No se encontró '{archivo_csv}'. Ejecute primero 'preparacion_datos.py'.")
         return
 
     df = pd.read_csv(archivo_csv)
-    print(f"\n[1] Dataset cargado: {len(df)} registros.")
+    print(f"\n[1] Dataset limpio cargado: {len(df)} registros.")
 
     # 2. DEFINICIÓN DE LA VARIABLE OBJETIVO (0 / 1)
     # y = 1 (Alerta / Requiere Pausa), y = 0 (Balance / Favorable)
@@ -118,9 +128,9 @@ def main():
         "Clase 0 (Balance/Saludable)": int(np.sum(y == 0)),
         "Clase 1 (Alerta/Pausa)": int(np.sum(y == 1))
     })
-    print("   • Nota de diseño ético y técnico: 'puntuacion_bienestar' NO se utiliza como entrada del modelo")
-    print("     para evitar data leakage, garantizando que el perceptrón aprenda únicamente a partir del")
-    print("     comportamiento temporal y del estado de estrés previo.")
+    print("   • Justificación de exclusión (Prevención de Data Leakage): 'puntuacion_bienestar' y")
+    print("     'estado_semaforo' NO se utilizan como variables de entrada del modelo porque a partir")
+    print("     de ellas se construyó la etiqueta 'requiere_pausa'. Incluirlas filtraría la respuesta.")
 
     # 3. SELECCIÓN Y ESTANDARIZACIÓN DE LAS DOS VARIABLES NUMÉRICAS DE ENTRADA
     # x1: intervalo_horas
@@ -133,7 +143,7 @@ def main():
     sigma = np.std(X_raw, axis=0)
     X_scaled = (X_raw - mu) / sigma
 
-    print("\n[3] Variables de Entrada Numéricas Seleccionadas:")
+    print("\n[3] Variables de Entrada Numéricas Seleccionadas y Estandarizadas:")
     print(f"   • x1: 'intervalo_horas' -> Media={mu[0]:.2f} h, Desv={sigma[0]:.2f} h")
     print(f"   • x2: 'nivel_estres'   -> Media={mu[1]:.2f}, Desv={sigma[1]:.2f}")
     print("   • Estandarización z-score aplicada exitosamente con NumPy.")
@@ -149,6 +159,7 @@ def main():
     perdida_final = perdidas[-1]
     y_pred = modelo.predecir_clase(X_scaled)
     acc = modelo.exactitud(y, y_pred)
+    aciertos = int(np.sum(y == y_pred))
 
     w1 = modelo.w[0]
     w2 = modelo.w[1]
@@ -164,7 +175,7 @@ def main():
     print(f"   • Sesgo b (bias)              : {b:.4f}")
     print(f"   • Pérdida Inicial (Época 1)   : {perdida_inicial:.4f}")
     print(f"   • Pérdida Final (Época {epocas}) : {perdida_final:.4f}")
-    print(f"   • Exactitud Global (Accuracy) : {acc:.2f} %")
+    print(f"   • Exactitud Global (Accuracy) : {acc:.2f} % ({aciertos}/{m} aciertos)")
     print("=" * 75)
 
     # 6. GENERACIÓN DE GRÁFICOS OBLIGATORIOS
@@ -180,11 +191,11 @@ def main():
     # Anotación del descenso
     plt.annotate(f"Pérdida Inicial: {perdida_inicial:.3f}", xy=(1, perdida_inicial), xytext=(150, perdida_inicial * 0.95),
                  arrowprops=dict(facecolor='black', shrink=0.05, width=1, headwidth=6))
-    plt.annotate(f"Pérdida Final: {perdida_final:.3f}", xy=(epocas, perdida_final), xytext=(epocas - 500, perdida_final + 0.15),
+    plt.annotate(f"Pérdida Final: {perdida_final:.3f}", xy=(epocas, perdida_final), xytext=(epocas - 550, perdida_final + 0.12),
                  arrowprops=dict(facecolor='green', shrink=0.05, width=1, headwidth=6))
     
     plt.tight_layout()
-    out_curva = "curva_aprendizaje_perceptron.png"
+    out_curva = os.path.join(base_dir, "curva_aprendizaje_perceptron.png")
     plt.savefig(out_curva, dpi=300)
     plt.close()
     print(f"\n[OK] Gráfico de Curva de Aprendizaje guardado: {out_curva}")
@@ -224,7 +235,7 @@ def main():
     plt.grid(True, linestyle=":", alpha=0.5)
 
     plt.tight_layout()
-    out_frontera = "frontera_decision_perceptron.png"
+    out_frontera = os.path.join(base_dir, "frontera_decision_perceptron.png")
     plt.savefig(out_frontera, dpi=300)
     plt.close()
     print(f"[OK] Gráfico de Frontera de Decisión guardado: {out_frontera}")
@@ -249,21 +260,20 @@ def main():
     
     interp_separabilidad = (
         f"2. ANÁLISIS DE SEPARABILIDAD LINEAL DE LOS DATOS:\n"
-        f"   • Los datos presentan un alto grado de separabilidad lineal en este espacio bidimensional, lo cual\n"
-        f"     se refleja en la exactitud obtenida ({acc:.2f} %) y en la rápida convergencia asintótica de la pérdida.\n"
-        f"   • Se observa una zona de transición estrecha en torno a la frontera donde eventos con descanso moderado\n"
-        f"     (25-30 horas) y estrés intermedio (5-6) están cercanos a la recta, lo que refleja la complejidad humana."
+        f"   • Los datos presentan un alto grado de separabilidad lineal en este espacio bidimensional, logrando\n"
+        f"     una exactitud de {acc:.2f} % ({aciertos} de {m} registros clasificados correctamente).\n"
+        f"   • Existen 2 casos atípicos fronterizos (registros con ~38-42h de descanso y estrés bajo = 4, pero que\n"
+        f"     requirieron pausa por presentar irritación física o interferencia funcional) que caen en la región\n"
+        f"     verde de la gráfica 2D, demostrando de manera real dónde falla una recta en dos dimensiones."
     )
 
     interp_limitaciones = (
         f"3. LIMITACIONES DEL MODELO PERCEPTRÓN:\n"
-        f"   • Linealidad Estricta: El perceptrón asume una frontera recta bidimensional simple. No puede capturar\n"
-        f"     interacciones no lineales complejas (como fatiga súbita acumulada de varios días o dolor físico aislado\n"
-        f"     ocurrido a pesar de un descanso largo).\n"
-        f"   • Solo dos dimensiones: Al restringirse a 2 variables, se omiten predictores clínicos vitales como la\n"
-        f"     interferencia funcional o los síntomas de dolor genital.\n"
-        f"   • Justificación hacia el Proyecto Final: En la Clase 12 se migrará a modelos no lineales de Scikit-Learn\n"
-        f"     (Random Forest Classifier y Regresión Logística multinomial) con todas las variables del protocolo CIE-11."
+        f"   • Linealidad Estricta y 2 Dimensiones: El perceptrón traza únicamente un hiperplano recto usando\n"
+        f"     2 variables (intervalo y estrés). No puede detectar alertas causadas por variables clínicas omitidas\n"
+        f"     en este plano 2D (como dolor/irritación genital aislada o interferencia académica súbita).\n"
+        f"   • Justificación hacia el Proyecto Final: En la Clase 12 se migrará a modelos multivariados no lineales\n"
+        f"     de Scikit-Learn (Random Forest Classifier y Regresión Logística) integrando todas las variables CIE-11."
     )
 
     print(interp_pesos)

@@ -17,6 +17,7 @@ services:
       context: .
       dockerfile: Dockerfile.ia
     container_name: python_ia
+    working_dir: /app/src
     volumes:
       - .:/app
     command: python perceptron_proyecto.py

@@ -13,4 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 3. Copia del código y datasets
 COPY . .
 
+# 4. Directorio de trabajo solicitado en la guía del entregable (root@...:/app/src#)
+WORKDIR /app/src
+
 CMD ["python", "perceptron_proyecto.py"]

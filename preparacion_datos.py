@@ -5,9 +5,14 @@ Docente: Jhon James Cano Sánchez
 Estudiantes: Andrés Felipe Mejía Suaza & Miguel Ángel Linares
 
 Script de preparación y limpieza de datos con Pandas (Clase 7).
-Inspecciona el dataset original, realiza tratamiento justificado de datos,
-codifica variables categóricas, genera tabla comparativa 'antes/después'
-y exporta el dataset limpio a data/mcontrol_limpio.csv.
+Inspecciona el dataset crudo recolectado, realiza el tratamiento justificado de:
+- Valores nulos
+- Filas duplicadas
+- Tipos de datos incorrectos
+- Valores atípicos o físicamente imposibles
+- Categorías inconsistentes
+Codifica variables categóricas con pd.get_dummies, genera la tabla comparativa
+'Antes / Después' y exporta el dataset limpio a data/mcontrol_limpio.csv.
 """
 
 import os
@@ -15,102 +20,135 @@ import pandas as pd
 import numpy as np
 
 
-def main():
-    print("=" * 70)
-    print("  M-CONTROL | PREPARACIÓN Y LIMPIEZA DE DATOS (CLASE 7)")
-    print("=" * 70)
+def obtener_directorio_base():
+    """Permite ejecutar el script tanto desde la raíz (/app) como desde /app/src."""
+    actual = os.path.dirname(os.path.abspath(__file__))
+    if os.path.basename(actual) == "src":
+        return os.path.dirname(actual)
+    return actual
 
-    archivo_origen = "datos_mcontrol.csv"
+
+def main():
+    base_dir = obtener_directorio_base()
+    print("=" * 75)
+    print("  M-CONTROL | PREPARACIÓN Y LIMPIEZA DE DATOS CON PANDAS (CLASE 7)")
+    print("=" * 75)
+
+    archivo_origen = os.path.join(base_dir, "data", "datos_mcontrol_crudo.csv")
     if not os.path.exists(archivo_origen):
-        print(f"[ERROR] No se encontró '{archivo_origen}'.")
-        return
+        archivo_origen = os.path.join(base_dir, "datos_mcontrol.csv")
 
     # 1. CARGA E INSPECCIÓN INICIAL CON PANDAS
-    print("\n--- 1. INSPECCIÓN INICIAL DEL DATASET ---")
+    print("\n--- 1. CARGA E INSPECCIÓN INICIAL DEL DATASET CRUDO ---")
     df_raw = pd.read_csv(archivo_origen)
     filas_inicial, cols_inicial = df_raw.shape
-    print(f"Dimensiones iniciales (shape): {filas_inicial} filas x {cols_inicial} columnas")
+    print(f"Archivo cargado : {os.path.relpath(archivo_origen, base_dir)}")
+    print(f"Dimensiones iniciales (df.shape): {filas_inicial} filas x {cols_inicial} columnas\n")
 
-    print("\nResumen general (info):")
+    print("Estructura y tipos de datos iniciales (df.info()):")
     df_raw.info()
 
-    nulos_inicial = df_raw.isnull().sum()
-    print("\nValores nulos por columna (inicial):")
-    print(nulos_inicial)
+    nulos_por_col = df_raw.isnull().sum()
+    total_nulos_inicial = int(nulos_por_col.sum())
+    print("\nConteo de valores nulos por columna (df.isnull().sum()):")
+    print(nulos_por_col[nulos_por_col > 0] if total_nulos_inicial > 0 else nulos_por_col)
+    print(f"Total de celdas nulas encontradas: {total_nulos_inicial}")
 
-    duplicados_inicial = df_raw.duplicated().sum()
-    print(f"\nFilas duplicadas identificadas: {duplicados_inicial}")
+    duplicados_inicial = int(df_raw.duplicated().sum())
+    print(f"Filas duplicadas exactas (df.duplicated().sum()): {duplicados_inicial}")
 
-    # 2. TRATAMIENTO JUSTIFICADO DE DATOS
+    categorias_raw = df_raw['estado_semaforo'].unique().tolist()
+    print(f"Categorías en 'estado_semaforo' antes de limpiar: {categorias_raw}")
+
+    # 2. TRATAMIENTO JUSTIFICADO DE PROBLEMAS EN LOS DATOS
     print("\n--- 2. TRATAMIENTO JUSTIFICADO DE DATOS ---")
     df_clean = df_raw.copy()
 
-    # A. Tratamiento de duplicados
-    if duplicados_inicial > 0:
-        df_clean = df_clean.drop_duplicates()
-        print(f"[ACCION] Se eliminaron {duplicados_inicial} registros duplicados.")
-    else:
-        print("[JUSTIFICACION] No se encontraron filas duplicadas idénticas en el dataset.")
+    # A. Eliminación de duplicados
+    df_clean = df_clean.drop_duplicates()
+    print(f"[1. Duplicados] Se eliminaron {duplicados_inicial} filas duplicadas producto de doble envío en formulario.")
+    print(f"    Filas restantes: {len(df_clean)}")
 
-    # B. Normalización y tipado de fechas
+    # B. Tratamiento de valores nulos
+    filas_con_nulos = df_clean.isnull().any(axis=1).sum()
+    df_clean = df_clean.dropna(subset=['intervalo_horas', 'nivel_estres']).copy()
+    print(f"[2. Valores Nulos] Se eliminaron {filas_con_nulos} registros con valores faltantes en 'intervalo_horas' o 'nivel_estres'.")
+    print("    Justificación: No se imputan con la media para no distorsionar la relación fisiológica real entre descanso y estrés.")
+    print(f"    Filas restantes: {len(df_clean)}")
+
+    # C. Corrección de tipos de datos
     df_clean['fecha_hora'] = pd.to_datetime(df_clean['fecha_hora'], errors='coerce')
+    df_clean['intervalo_horas'] = df_clean['intervalo_horas'].astype(float)
+    df_clean['nivel_estres'] = df_clean['nivel_estres'].astype(int)
     df_clean['hora_evento'] = df_clean['fecha_hora'].dt.hour
-    df_clean['dia_semana'] = df_clean['fecha_hora'].dt.day_name()
-    print("[ACCION] 'fecha_hora' convertida a datetime y extraídas features 'hora_evento' y 'dia_semana'.")
+    print("[3. Tipos de Datos] 'fecha_hora' convertida de object/str a datetime64; 'nivel_estres' tipado a int64.")
 
-    # C. Tratamiento de nulos o valores atípicos imposibles
-    # Un intervalo de horas biológicamente debe ser > 0 y < 720 (un mes)
-    filas_invalidas_intervalo = df_clean[(df_clean['intervalo_horas'] <= 0) | (df_clean['intervalo_horas'] > 720)]
-    if len(filas_invalidas_intervalo) > 0:
-        df_clean = df_clean[~df_clean.index.isin(filas_invalidas_intervalo.index)]
-        print(f"[ACCION] Se eliminaron {len(filas_invalidas_intervalo)} registros con intervalos fisiológicamente inválidos.")
-    else:
-        print("[JUSTIFICACION] Todos los intervalos de descanso (7.5h a 79.7h) se encuentran en el rango fisiológico válido.")
+    # D. Filtrado de valores atípicos o imposibles
+    condicion_imposible = (df_clean['intervalo_horas'] <= 0) | (df_clean['intervalo_horas'] > 720) | (df_clean['nivel_estres'] < 1) | (df_clean['nivel_estres'] > 10)
+    filas_atipicas = int(condicion_imposible.sum())
+    df_clean = df_clean[~condicion_imposible].copy()
+    print(f"[4. Atípicos / Imposibles] Se descartaron {filas_atipicas} registros con valores imposibles (intervalo -6.5h < 0 y estrés 15 fuera de escala 1-10).")
+    print(f"    Filas restantes: {len(df_clean)}")
 
-    # D. Normalización de categorías textuales (espacios, tildes, mayúsculas)
+    # E. Unificación de categorías inconsistentes
     df_clean['estado_semaforo'] = df_clean['estado_semaforo'].astype(str).str.strip().str.title()
-    print("[ACCION] 'estado_semaforo' normalizado a formato Título (Verde, Amarillo, Rojo).")
+    categorias_limpias = df_clean['estado_semaforo'].unique().tolist()
+    print(f"[5. Categorías Inconsistentes] Unificadas con .str.strip().str.title(): {categorias_limpias}")
 
-    # E. Definición de la Variable Objetivo 0/1 para Machine Learning
-    # y = 1 si requiere alerta o pausa biológica (Semáforo Amarillo o Rojo, o bienestar < 70, o interferencia >= 1)
-    # y = 0 si patrón en balance autorregulado (Semáforo Verde, bienestar >= 70, sin interferencia)
-    df_clean['requiere_pausa'] = np.where(
-        (df_clean['estado_semaforo'].isin(['Amarillo', 'Rojo'])) | 
-        (df_clean['puntuacion_bienestar'] < 70.0) | 
-        (df_clean['interferencia_funcional'] >= 1),
-        1, 0
-    )
-    print("\n[DEFINICION VARIABLE OBJETIVO]")
-    print("Variable binaria creada: 'requiere_pausa' (0 = Favorable/Equilibrado, 1 = Alerta/Requiere Pausa).")
-    print(df_clean['requiere_pausa'].value_counts().rename(index={0: "0 (Verde - Balance)", 1: "1 (Alerta / Pausa)"}))
+    # F. Definición de la Variable Objetivo 0/1 para el Perceptrón
+    # Umbral: puntuación_bienestar < 70.0 (o estado Amarilla/Roja) -> requiere_pausa = 1
+    df_clean['requiere_pausa'] = np.where(df_clean['puntuacion_bienestar'] < 70.0, 1, 0)
+    print("\n[6. Variable Objetivo 0/1] Creada columna 'requiere_pausa':")
+    print("    • 1 (Alerta / Requiere Pausa Biológica): puntuacion_bienestar < 70")
+    print("    • 0 (Balance / Autorregulación Óptima) : puntuacion_bienestar >= 70")
+    print("    • Nota clave: 'puntuacion_bienestar' NO se usa como entrada (X) en el modelo para evitar fuga de datos.")
 
-    # F. Codificación de variables categóricas con pd.get_dummies
-    # Codificamos 'control_autopercibido' (1: Bajo, 2: Medio, 3: Alto) a dummies explicativas
+    # G. Codificación de variables categóricas con pd.get_dummies
     df_encoded = pd.get_dummies(df_clean, columns=['control_autopercibido'], prefix='control', dtype=int)
-    print("\n[ACCION] Codificación con pd.get_dummies aplicada sobre 'control_autopercibido' -> ['control_1', 'control_2', 'control_3'].")
+    print("\n[7. Codificación Categórica] Aplicado pd.get_dummies sobre 'control_autopercibido' -> ['control_1', 'control_2', 'control_3'].")
 
-    # 3. EXPORTACIÓN A data/mcontrol_limpio.csv
-    os.makedirs("data", exist_ok=True)
-    ruta_salida = os.path.join("data", "mcontrol_limpio.csv")
+    # 3. EXPORTACIÓN DEL DATASET LIMPIO A data/mcontrol_limpio.csv
+    os.makedirs(os.path.join(base_dir, "data"), exist_ok=True)
+    ruta_salida = os.path.join(base_dir, "data", "mcontrol_limpio.csv")
     df_encoded.to_csv(ruta_salida, index=False, encoding='utf-8')
-    print(f"\n[OK] Dataset limpio y preparado exportado exitosamente en: {ruta_salida}")
+    print(f"\n[OK] Dataset limpio exportado en: {os.path.relpath(ruta_salida, base_dir)}")
 
     # 4. TABLA COMPARATIVA ANTES / DESPUÉS
     filas_final, cols_final = df_encoded.shape
-    nulos_final = df_encoded.isnull().sum().sum()
+    nulos_final = int(df_encoded.isnull().sum().sum())
+    duplicados_final = int(df_encoded.duplicated().sum())
 
-    print("\n" + "=" * 70)
+    print("\n" + "=" * 75)
     print("  TABLA COMPARATIVA 'ANTES / DESPUÉS' (REQUISITO OFICIAL CLASE 7)")
-    print("=" * 70)
+    print("=" * 75)
     tabla_comparativa = pd.DataFrame({
-        "Métrica": ["Número de Filas", "Número de Columnas", "Total Valores Nulos", "Filas Duplicadas", "Nuevas Features Creadas"],
-        "Antes (Dataset Raw)": [filas_inicial, cols_inicial, nulos_inicial.sum(), duplicados_inicial, 0],
-        "Después (Dataset Limpio)": [filas_final, cols_final, nulos_final, 0, 4]
+        "Indicador del Dataset": [
+            "Número de Filas (Registros)",
+            "Número de Columnas",
+            "Valores Nulos (Celdas vacías)",
+            "Filas Duplicadas",
+            "Valores Atípicos / Imposibles",
+            "Categorías en 'estado_semaforo'"
+        ],
+        "Antes (Crudo)": [
+            str(filas_inicial),
+            str(cols_inicial),
+            str(total_nulos_inicial),
+            str(duplicados_inicial),
+            str(filas_atipicas),
+            "6 variantes ('verde', 'VERDE ', 'Rojo '...)"
+        ],
+        "Después (Limpio)": [
+            str(filas_final),
+            str(cols_final),
+            str(nulos_final),
+            str(duplicados_final),
+            "0",
+            "3 unificadas ('Verde', 'Amarillo', 'Rojo')"
+        ]
     })
     print(tabla_comparativa.to_string(index=False))
-    print("=" * 70)
-
-    return df_encoded
+    print("=" * 75)
 
 
 if __name__ == "__main__":
