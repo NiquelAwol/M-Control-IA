@@ -2,7 +2,7 @@
 preparacion_datos.py
 M-Control | Inteligencia Artificial · Segundo Corte
 Docente: Jhon James Cano Sánchez
-Estudiantes: Andrés Felipe Mejía Suaza & Miguel Ángel Linares
+Estudiantes: Andrés Felipe Mejía Suaza & Miguel Ángel Ramírez
 
 Script de preparación y limpieza de datos con Pandas (Clase 7).
 Inspecciona el dataset crudo recolectado, realiza el tratamiento justificado de:

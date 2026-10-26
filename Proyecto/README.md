@@ -46,5 +46,5 @@ Proyecto/
 
 ## 👥 Equipo
 - **Andrés Felipe Mejía Suaza**
-- **Linares Miguel Ángel**
+- **Ramírez Miguel Ángel**
 - *Fecha:* Septiembre 2026

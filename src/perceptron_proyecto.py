@@ -2,7 +2,7 @@
 perceptron_proyecto.py
 M-Control | Inteligencia Artificial · Segundo Corte
 Docente: Jhon James Cano Sánchez
-Estudiantes: Andrés Felipe Mejía Suaza & Miguel Ángel Linares
+Estudiantes: Andrés Felipe Mejía Suaza & Miguel Ángel Ramírez
 
 Actividad Independiente de las Clases 8 y 9:
 Implementación de un Perceptrón simple para clasificación binaria desde cero

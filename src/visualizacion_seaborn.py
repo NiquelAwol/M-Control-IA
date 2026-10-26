@@ -2,7 +2,7 @@
 visualizacion_seaborn.py
 M-Control | Inteligencia Artificial · Segundo Corte
 Docente: Jhon James Cano Sánchez
-Estudiantes: Andrés Felipe Mejía Suaza & Miguel Ángel Linares
+Estudiantes: Andrés Felipe Mejía Suaza & Miguel Ángel Ramírez
 
 Script de análisis visual con Seaborn (Clase 7).
 Genera 3 gráficos formales con Seaborn con títulos y ejes claros,
