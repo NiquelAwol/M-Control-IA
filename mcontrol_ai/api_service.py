@@ -23,7 +23,8 @@ from .base_conocimiento import obtener_fuentes, DATOS_POBLACIONALES_NSSHB
 from .calendar_predictor import PredictorCalendario
 from .database import (
     insertar_registro, obtener_conexion, sembrar_datos_iniciales, inicializar_base_datos,
-    listar_usuarios, obtener_usuario, autenticar_usuario, crear_usuario, obtener_registros_usuario
+    listar_usuarios, obtener_usuario, autenticar_usuario, crear_usuario, obtener_registros_usuario,
+    eliminar_usuario_bd
 )
 from .evaluador_metricas import ejecutar_suite_validacion
 from .ml_engine import MotorML
@@ -131,14 +132,15 @@ class MControlAPIHandler(SimpleHTTPRequestHandler):
                 return self._responder_json({"error": "JSON malformado"}, 400)
 
             alias = datos.get("alias", "").strip()
-            pin = str(datos.get("pin", "1234")).strip()
+            pin = str(datos.get("pin", "")).strip()
             usuario = autenticar_usuario(alias, pin)
             if usuario:
                 return self._responder_json({"status": "ok", "user": usuario})
             else:
-                # Si no existe, crearlo automáticamente para facilitar onboarding de participantes
-                nuevo_user = crear_usuario(alias, edad=int(datos.get("edad", 24)), objetivo_personal=datos.get("objetivo", "Autorregulación"), pin=pin)
-                return self._responder_json({"status": "ok", "user": nuevo_user, "nuevo": True}, 201)
+                return self._responder_json({
+                    "status": "error",
+                    "error": "Usuario o contraseña incorrectos. Solicita tus credenciales al Administrador."
+                }, 401)
 
         elif parsed.path == "/api/users/register":
             length = int(self.headers.get("Content-Length", 0))
@@ -148,12 +150,41 @@ class MControlAPIHandler(SimpleHTTPRequestHandler):
             except Exception:
                 return self._responder_json({"error": "JSON malformado"}, 400)
 
-            alias = datos.get("alias", f"Participante {len(listar_usuarios()) + 1}").strip()
+            # Verificar que quien solicita la creación sea el Administrador
+            admin_alias = datos.get("admin_alias", "").strip().lower()
+            if admin_alias != "admin":
+                return self._responder_json({
+                    "status": "error",
+                    "error": "Acceso denegado: Solo el Administrador puede crear nuevos usuarios."
+                }, 403)
+
+            alias = datos.get("alias", "").strip()
             edad = int(datos.get("edad", 24))
             objetivo = datos.get("objetivo", "Autorregulación y Bienestar").strip()
             pin = str(datos.get("pin", "1234")).strip()
-            nuevo_user = crear_usuario(alias, edad, objetivo, pin)
-            return self._responder_json({"status": "ok", "user": nuevo_user}, 201)
+            if not alias or not pin:
+                return self._responder_json({"status": "error", "error": "Usuario y contraseña requeridos"}, 400)
+            try:
+                nuevo_user = crear_usuario(alias, edad, objetivo, pin)
+                return self._responder_json({"status": "ok", "user": nuevo_user}, 201)
+            except ValueError as ve:
+                return self._responder_json({"status": "error", "error": str(ve)}, 409)
+
+        elif parsed.path == "/api/users/delete":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length).decode("utf-8")
+            try:
+                datos = json.loads(body)
+            except Exception:
+                return self._responder_json({"error": "JSON malformado"}, 400)
+
+            if datos.get("admin_alias", "").strip().lower() != "admin":
+                return self._responder_json({"status": "error", "error": "Solo el Administrador puede eliminar usuarios."}, 403)
+            uid = int(datos.get("user_id", 0))
+            ok = eliminar_usuario_bd(uid)
+            if ok:
+                return self._responder_json({"status": "ok", "mensaje": "Usuario eliminado"})
+            return self._responder_json({"status": "error", "error": "No se pudo eliminar el usuario"}, 400)
 
         elif parsed.path == "/api/records":
             length = int(self.headers.get("Content-Length", 0))

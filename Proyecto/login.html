@@ -3,58 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M-Control | Acceso de Participantes</title>
+    <title>M-Control | Iniciar Sesión</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        .login-tab-container {
+        .social-login-container {
+            min-height: calc(100vh - 140px);
             display: flex;
-            border-bottom: 2px solid var(--border-color);
-            margin-bottom: 1.5rem;
-            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
         }
-        .login-tab-btn {
+        .social-login-grid {
+            display: grid;
+            grid-template-columns: 1.25fr 0.95fr;
+            gap: 3.5rem;
+            max-width: 1040px;
+            width: 100%;
+            align-items: center;
+        }
+        @media (max-width: 860px) {
+            .social-login-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                text-align: center;
+            }
+            .brand-hero-features {
+                text-align: left;
+            }
+        }
+        .brand-hero-title {
+            font-size: 3.4rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #38bdf8 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.75rem;
+            line-height: 1.1;
+        }
+        .brand-hero-tagline {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            line-height: 1.45;
+            margin-bottom: 1.5rem;
+        }
+        .brand-hero-features {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.75rem;
+        }
+        .brand-feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            background: rgba(30, 41, 59, 0.55);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .social-auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 2rem 1.75rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+        }
+        .social-input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            font-size: 1rem;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+        .social-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+        }
+        .btn-social-login {
+            width: 100%;
+            padding: 0.9rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 0.5rem;
+        }
+        .btn-social-login:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+        .social-divider {
+            border: 0;
+            border-top: 1px solid var(--border-color);
+            margin: 1.5rem 0;
+        }
+        .admin-lock-box {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px dashed rgba(148, 163, 184, 0.35);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.45;
+            margin-bottom: 1rem;
+        }
+        .error-alert-box {
+            display: none;
+            background: rgba(239, 68, 68, 0.14);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.86rem;
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .pwd-wrapper {
+            position: relative;
+        }
+        .pwd-toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
             background: none;
             border: none;
-            color: var(--text-secondary);
-            font-size: 1rem;
-            font-weight: 600;
-            padding: 0.75rem 0.5rem;
+            color: var(--text-muted);
             cursor: pointer;
-            position: relative;
-            transition: var(--transition);
-        }
-        .login-tab-btn.active {
-            color: var(--accent);
-        }
-        .login-tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: var(--accent);
-        }
-        .user-picker-card {
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 1rem 1.25rem;
-            background: rgba(15, 23, 42, 0.6);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-bottom: 0.75rem;
-        }
-        .user-picker-card:hover {
-            border-color: var(--accent);
-            background: rgba(56, 189, 248, 0.08);
-            transform: translateY(-2px);
-        }
-        .user-picker-card.selected {
-            border-color: var(--color-green);
-            background: rgba(16, 185, 129, 0.12);
+            font-size: 0.82rem;
+            padding: 4px 6px;
         }
     </style>
 </head>
@@ -63,245 +153,190 @@
     <!-- Navegación Superior -->
     <header class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="brand">
+            <a href="login.html" class="brand">
                 <div class="brand-icon">M</div>
                 <span>M-Control</span>
                 <span class="tag">AI Engine v2.0</span>
             </a>
             <nav>
                 <ul class="nav-links">
-                    <li><a href="index.html" class="nav-link">🏠 Inicio</a></li>
-                    <li><a href="calendario.html" class="nav-link">📅 Calendario</a></li>
-                    <li><a href="analisis.html" class="nav-link">📊 Métricas</a></li>
-                    <li><a href="educacion.html" class="nav-link">📚 Evidencia</a></li>
-                    <li><a href="registro.html" class="nav-link nav-btn-action">➕ Registrar Evento</a></li>
+                    <li><a href="educacion.html" class="nav-link">🏛️ ¿En qué consiste M-Control? (Misión y Visión)</a></li>
+                    <li><a href="login.html" class="nav-link active nav-btn-action">🔐 Iniciar Sesión</a></li>
                 </ul>
             </nav>
         </div>
     </header>
 
-    <!-- Contenido Principal -->
-    <main class="main-content">
-        <div class="login-wrapper">
-            <div class="page-header" style="text-align: center; margin-bottom: 1.5rem; flex-direction: column; align-items: center;">
-                <h1 class="page-title" style="font-size: 1.8rem;">🔐 Acceso de Participantes</h1>
-                <p class="page-subtitle" style="max-width: 500px;">
-                    Selecciona tu perfil de estudio o crea uno nuevo para recopilar y entrenar la IA con tus datos reales de forma 100% aislada.
+    <!-- Contenedor Principal Estilo Red Social -->
+    <main class="main-content social-login-container">
+        <div class="social-login-grid">
+            
+            <!-- Columna Izquierda: Presentación e Invitación a Conocer el Aplicativo -->
+            <div>
+                <div class="brand-hero-title">M-Control</div>
+                <p class="brand-hero-tagline">
+                    Plataforma inteligente de autorregulación y bienestar masculino impulsada por Machine Learning y evidencia clínica.
                 </p>
+
+                <div class="brand-hero-features">
+                    <div class="brand-feature-item">
+                        <span style="font-size: 1.35rem;">📅</span>
+                        <div>
+                            <strong style="color: var(--text-primary);">Calendario Predictivo Personalizado:</strong>
+                            Aprende tu ritmo biológico y proyecta días favorables o de pausa preventiva.
+                        </div>
+                    </div>
+                    <div class="brand-feature-item">
+                        <span style="font-size: 1.35rem;">🔬</span>
+                        <div>
+                            <strong style="color: var(--text-primary);">Sustento Médico Oficial:</strong>
+                            Fundamentado en la OMS (CIE-11), ISSM y Cleveland Clinic, sin tabúes ni juicios morales.
+                        </div>
+                    </div>
+                    <div class="brand-feature-item">
+                        <span style="font-size: 1.35rem;">🔒</span>
+                        <div>
+                            <strong style="color: var(--text-primary);">Privacidad y Entorno Cerrado:</strong>
+                            Cada participante cuenta con su perfil aislado y modelo de IA individual.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón destacado para quienes no tienen usuario -->
+                <a href="educacion.html" class="btn btn-secondary" style="padding: 0.85rem 1.25rem; font-size: 0.95rem; border-color: var(--accent); color: var(--accent); display: inline-flex; align-items: center; gap: 0.5rem;">
+                    🏛️ ¿No tienes usuario? Conoce en qué consiste el aplicativo, Misión, Visión y Objetivos ➔
+                </a>
             </div>
 
-            <!-- Principio de Aislamiento -->
-            <div class="callout callout-info" style="margin-bottom: 1.5rem;">
-                <span style="font-size: 1.4rem;">🔒</span>
-                <div style="font-size: 0.85rem;">
-                    <strong>Privacidad y Modelos Aislados:</strong> Cada participante tiene su propia base de eventos y su propio modelo predictivo. Los datos registrados en tu perfil no alteran los resultados ni las predicciones de otros usuarios.
-                </div>
-            </div>
-
-            <div class="login-card">
-                <!-- Selector de Pestañas -->
-                <div class="login-tab-container">
-                    <button id="tab-login" class="login-tab-btn active" onclick="switchLoginTab('login')">
-                        👤 Participante Registrado
-                    </button>
-                    <button id="tab-register" class="login-tab-btn" onclick="switchLoginTab('register')">
-                        ➕ Nuevo Participante
-                    </button>
-                </div>
-
-                <!-- Pestaña 1: Ingreso con Perfil Existente -->
-                <div id="section-login">
-                    <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1rem;">
-                        Haz clic en tu alias para iniciar sesión:
+            <!-- Columna Derecha: Tarjeta de Inicio de Sesión (Usuario y Contraseña) -->
+            <div>
+                <div class="social-auth-card">
+                    <h2 style="font-size: 1.35rem; margin-bottom: 0.35rem; color: var(--text-primary); text-align: center;">Iniciar Sesión</h2>
+                    <p style="font-size: 0.86rem; color: var(--text-secondary); text-align: center; margin-bottom: 1.35rem;">
+                        Ingresa tus credenciales asignadas para acceder al Calendario y al Sistema de IA
                     </p>
 
-                    <div id="users-picker-list" style="max-height: 280px; overflow-y: auto; margin-bottom: 1.25rem;">
-                        <!-- Se llena dinámicamente -->
-                    </div>
+                    <div id="login-error-box" class="error-alert-box"></div>
 
-                    <div class="form-group" style="margin-bottom: 1.25rem;">
-                        <label for="login-pin" class="form-label" style="font-size: 0.85rem;">🔑 PIN de Seguridad (Opcional, por defecto 1234):</label>
-                        <input type="password" id="login-pin" class="form-control" value="1234" maxlength="6" placeholder="1234">
-                    </div>
-
-                    <button id="btn-login-submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 1rem;" onclick="submitLogin()">
-                        🚀 Entrar a este Perfil
-                    </button>
-                </div>
-
-                <!-- Pestaña 2: Registro de Nuevo Participante -->
-                <div id="section-register" style="display: none;">
-                    <form id="form-register-full" onsubmit="submitRegister(event)">
-                        <div class="form-group">
-                            <label for="reg-alias" class="form-label">👤 Alias o Seudónimo del Participante</label>
-                            <input type="text" id="reg-alias" class="form-control" placeholder="Ej. Participante 4, Carlos_M, Sujeto_Beta" required>
-                            <div class="form-hint">Puedes usar cualquier alias o seudónimo para proteger tu identidad.</div>
+                    <form id="form-social-login" onsubmit="handleSocialLogin(event)">
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <input
+                                type="text"
+                                id="login-username"
+                                class="social-input"
+                                placeholder="Usuario"
+                                autocomplete="username"
+                                required
+                            >
                         </div>
 
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label for="reg-edad" class="form-label">🎂 Edad (Años)</label>
-                                <input type="number" id="reg-edad" class="form-control" min="18" max="99" value="23" required>
-                                <div class="form-hint">Usada para cotejar cohortes científicas NSSHB.</div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="reg-pin" class="form-label">🔑 PIN (4 dígitos)</label>
-                                <input type="password" id="reg-pin" class="form-control" value="1234" maxlength="6" required>
-                                <div class="form-hint">Por defecto: 1234</div>
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <div class="pwd-wrapper">
+                                <input
+                                    type="password"
+                                    id="login-password"
+                                    class="social-input"
+                                    placeholder="Contraseña"
+                                    autocomplete="current-password"
+                                    required
+                                    style="padding-right: 4rem;"
+                                >
+                                <button type="button" class="pwd-toggle-btn" onclick="togglePasswordVisibility()" id="btn-pwd-toggle">
+                                    Mostrar
+                                </button>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="reg-objetivo" class="form-label">🎯 Objetivo Personal de Autorregulación</label>
-                            <select id="reg-objetivo" class="form-control">
-                                <option value="autorregulacion">Autorregulación y Bienestar General</option>
-                                <option value="estres">Reducir el uso impulsivo ante Estrés</option>
-                                <option value="descanso">Proteger Horas de Sueño y Energía</option>
-                                <option value="investigacion">Colaborar con Datos Reales para el Estudio</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-success" style="width: 100%; padding: 0.75rem; font-size: 1rem; margin-top: 0.5rem;">
-                            ✨ Crear Perfil y Comenzar
+                        <button type="submit" id="btn-submit-login" class="btn-social-login">
+                            Iniciar Sesión
                         </button>
                     </form>
+
+                    <hr class="social-divider">
+
+                    <div class="admin-lock-box">
+                        🔒 <strong>Registro exclusivo por Administrador:</strong><br>
+                        Los usuarios y contraseñas solo pueden ser creados y entregados por el Administrador del proyecto.
+                    </div>
+
+                    <a href="educacion.html" class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.9rem;">
+                        📖 Ver Misión, Visión, Objetivos y Evidencia
+                    </a>
                 </div>
             </div>
 
-            <!-- Accesos Rápidos de Navegación -->
-            <div style="margin-top: 1.5rem; text-align: center; display: flex; justify-content: center; gap: 1rem; font-size: 0.85rem;">
-                <a href="calendario.html" style="color: var(--accent); text-decoration: none;">📅 Ver Calendario</a>
-                <span style="color: var(--text-muted);">·</span>
-                <a href="registro.html" style="color: var(--accent); text-decoration: none;">➕ Formulario de Registro</a>
-                <span style="color: var(--text-muted);">·</span>
-                <a href="educacion.html" style="color: var(--accent); text-decoration: none;">📚 Fuentes Médicas (CIE-11)</a>
-            </div>
         </div>
     </main>
 
     <!-- Pie de Página -->
     <footer class="footer">
-        <p><strong>M-Control</strong> — Investigación y Prototipo Conceptual · Andrés Felipe Mejía Suaza & Ramírez Miguel Ángel</p>
+        <p><strong>M-Control</strong> — Plataforma de Autorregulación y Bienestar Masculino · Andrés Felipe Mejía Suaza & Miguel Ángel Ramírez</p>
     </footer>
 
     <!-- Scripts -->
     <script src="js/storage.js"></script>
     <script src="js/app.js"></script>
     <script>
-        let selectedUserId = null;
-
         document.addEventListener('DOMContentLoaded', () => {
-            renderUserPicker();
-        });
-
-        function switchLoginTab(tab) {
-            const tabLogin = document.getElementById('tab-login');
-            const tabReg = document.getElementById('tab-register');
-            const secLogin = document.getElementById('section-login');
-            const secReg = document.getElementById('section-register');
-
-            if (tab === 'login') {
-                tabLogin.classList.add('active');
-                tabReg.classList.remove('active');
-                secLogin.style.display = 'block';
-                secReg.style.display = 'none';
-                renderUserPicker();
-            } else {
-                tabReg.classList.add('active');
-                tabLogin.classList.remove('active');
-                secLogin.style.display = 'none';
-                secReg.style.display = 'block';
-            }
-        }
-
-        function renderUserPicker() {
-            const listEl = document.getElementById('users-picker-list');
-            const users = window.StorageService.getUsers();
-            const activeId = window.StorageService.getActiveUserId();
-            selectedUserId = activeId;
-
-            listEl.innerHTML = '';
-            users.forEach(u => {
-                const events = window.StorageService.getEvents(u.id);
-                const isSelected = u.id === selectedUserId;
-                const card = document.createElement('div');
-                card.className = `user-picker-card ${isSelected ? 'selected' : ''}`;
-                card.id = `user-card-${u.id}`;
-                card.onclick = () => selectUserCard(u.id);
-
-                card.innerHTML = `
-                    <div>
-                        <div style="font-weight: 700; color: var(--text-primary); font-size: 1rem;">
-                            ${isSelected ? '✓ ' : ''}${u.alias}
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
-                            Edad: ${u.edad || 24} años · ${u.objetivo || 'Autorregulación'}
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <span class="user-chip-count">${events.length} evento(s)</span>
-                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">
-                            ${isSelected ? '<strong style="color: var(--color-green);">Perfil Activo</strong>' : 'Clic para elegir'}
-                        </div>
+            // Si el usuario ya tiene sesión activa, mostrar aviso o permitir ir directo al calendario
+            if (window.StorageService && window.StorageService.isAuthenticated()) {
+                const sess = window.StorageService.getAuthSession();
+                const errBox = document.getElementById('login-error-box');
+                errBox.style.display = 'block';
+                errBox.style.background = 'rgba(16, 185, 129, 0.14)';
+                errBox.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                errBox.style.color = '#6ee7b7';
+                errBox.innerHTML = `
+                    ✓ Tienes una sesión activa como <strong>${sess.alias}</strong>.<br>
+                    <div style="margin-top: 8px; display: flex; gap: 8px;">
+                        <a href="calendario.html" class="btn btn-success btn-sm" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">Ir al Calendario ➔</a>
+                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="window.handleLogout()">Cerrar sesión</button>
                     </div>
                 `;
-                listEl.appendChild(card);
-            });
+            }
+        });
 
-            updateSubmitButtonText();
-        }
-
-        function selectUserCard(userId) {
-            selectedUserId = userId;
-            document.querySelectorAll('.user-picker-card').forEach(c => c.classList.remove('selected'));
-            const selectedCard = document.getElementById(`user-card-${userId}`);
-            if (selectedCard) selectedCard.classList.add('selected');
-            updateSubmitButtonText();
-        }
-
-        function updateSubmitButtonText() {
-            const users = window.StorageService.getUsers();
-            const user = users.find(u => u.id === selectedUserId) || users[0];
-            const btn = document.getElementById('btn-login-submit');
-            if (user && btn) {
-                btn.innerText = `🚀 Entrar como: ${user.alias}`;
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('login-password');
+            const btn = document.getElementById('btn-pwd-toggle');
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                btn.innerText = 'Ocultar';
+            } else {
+                pwdInput.type = 'password';
+                btn.innerText = 'Mostrar';
             }
         }
 
-        function submitLogin() {
-            if (!selectedUserId) {
-                alert('Por favor selecciona un participante de la lista.');
-                return;
-            }
-
-            window.StorageService.setCurrentUser(selectedUserId);
-            const user = window.StorageService.getCurrentUser();
-            showToast(`¡Sesión iniciada como ${user.alias}!`);
-
-            setTimeout(() => {
-                window.location.href = 'calendario.html';
-            }, 500);
-        }
-
-        function submitRegister(e) {
+        async function handleSocialLogin(e) {
             e.preventDefault();
-            const alias = document.getElementById('reg-alias').value.trim();
-            const edad = document.getElementById('reg-edad').value.trim();
-            const objetivo = document.getElementById('reg-objetivo').value;
-            const pin = document.getElementById('reg-pin').value.trim();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const errBox = document.getElementById('login-error-box');
+            const btn = document.getElementById('btn-submit-login');
 
-            if (!alias) {
-                alert('Por favor introduce un alias.');
+            errBox.style.display = 'none';
+            btn.disabled = true;
+            btn.innerText = 'Verificando credenciales...';
+
+            const result = await window.StorageService.authenticateWithCredentials(username, password);
+
+            btn.disabled = false;
+            btn.innerText = 'Iniciar Sesión';
+
+            if (!result.ok) {
+                errBox.style.display = 'block';
+                errBox.style.background = 'rgba(239, 68, 68, 0.14)';
+                errBox.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                errBox.style.color = '#fca5a5';
+                errBox.innerText = '❌ ' + (result.error || 'Usuario o contraseña incorrectos.');
                 return;
             }
 
-            const newUser = window.StorageService.registerUser(alias, edad, objetivo, pin);
-            showToast(`¡Bienvenido, ${newUser.alias}! Perfil creado exitosamente.`);
-
+            showToast(`¡Bienvenido, ${result.user.alias}!`);
             setTimeout(() => {
                 window.location.href = 'calendario.html';
-            }, 600);
+            }, 400);
         }
     </script>
 </body>

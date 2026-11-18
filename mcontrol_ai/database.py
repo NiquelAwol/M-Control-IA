@@ -176,25 +176,37 @@ def inicializar_base_datos(db_path: Optional[str] = None) -> str:
         conn.commit()
 
     # --- CREAR USUARIOS POR DEFECTO SI NO EXISTEN ---
+    try:
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN rol TEXT DEFAULT 'participante';")
+    except Exception:
+        pass
+
+    ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cursor.execute("SELECT COUNT(*) AS total FROM usuarios;")
     if cursor.fetchone()["total"] == 0:
-        ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cursor.execute("""
-        INSERT INTO usuarios (id, alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad)
-        VALUES (1, 'Participante 1', '1234', 24, ?, 'Autorregulación y Bienestar', 'anon_hash_user1')
+        INSERT INTO usuarios (id, alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad, rol)
+        VALUES (1, 'admin', 'admin2026', 24, ?, 'Administración y Autorregulación', 'hash_admin', 'admin')
         """, (ahora_str,))
         cursor.execute("""
-        INSERT INTO usuarios (id, alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad)
-        VALUES (2, 'Participante 2', '1234', 21, ?, 'Reducir Frecuencia y Mejorar Sueño', 'anon_hash_user2')
+        INSERT INTO usuarios (id, alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad, rol)
+        VALUES (2, 'participante1', '1234', 24, ?, 'Autorregulación y Bienestar', 'anon_hash_user1', 'participante')
         """, (ahora_str,))
         cursor.execute("""
-        INSERT INTO usuarios (id, alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad)
-        VALUES (3, 'Participante 3', '1234', 28, ?, 'Observar Patrones de Estrés', 'anon_hash_user3')
+        INSERT INTO usuarios (id, alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad, rol)
+        VALUES (3, 'participante2', '1234', 22, ?, 'Reducir Frecuencia y Mejorar Sueño', 'anon_hash_user2', 'participante')
         """, (ahora_str,))
         conn.commit()
     else:
-        # Asegurar alias si algún usuario tenía valor nulo
-        cursor.execute("UPDATE usuarios SET alias = 'Participante ' || id WHERE alias IS NULL OR alias = '';")
+        # Asegurar que exista siempre la cuenta 'admin' para el propietario del proyecto
+        cursor.execute("SELECT id FROM usuarios WHERE LOWER(alias) = 'admin';")
+        if not cursor.fetchone():
+            cursor.execute("""
+            INSERT INTO usuarios (alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad, rol)
+            VALUES ('admin', 'admin2026', 24, ?, 'Administración del Sistema', 'hash_admin', 'admin')
+            """, (ahora_str,))
+        cursor.execute("UPDATE usuarios SET rol = 'admin' WHERE LOWER(alias) = 'admin';")
+        cursor.execute("UPDATE usuarios SET rol = 'participante' WHERE rol IS NULL OR rol = '';")
         cursor.execute("UPDATE usuarios SET pin = '1234' WHERE pin IS NULL OR pin = '';")
         conn.commit()
 
@@ -207,7 +219,7 @@ def listar_usuarios(db_path: Optional[str] = None) -> List[Dict[str, Any]]:
     conn = obtener_conexion(db_path)
     cursor = conn.cursor()
     cursor.execute("""
-    SELECT u.id, u.alias, u.edad, u.objetivo_personal, u.fecha_registro,
+    SELECT u.id, u.alias, u.pin, u.edad, u.objetivo_personal, u.fecha_registro, u.rol,
            COUNT(r.id) AS total_eventos
     FROM usuarios u
     LEFT JOIN registros_habito r ON u.id = r.usuario_id
@@ -223,35 +235,48 @@ def obtener_usuario(usuario_id: int, db_path: Optional[str] = None) -> Optional[
     """Retorna el perfil de un usuario por su ID."""
     conn = obtener_conexion(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, alias, edad, objetivo_personal, fecha_registro FROM usuarios WHERE id = ?", (usuario_id,))
+    cursor.execute("SELECT id, alias, edad, objetivo_personal, fecha_registro, rol FROM usuarios WHERE id = ?", (usuario_id,))
     row = cursor.fetchone()
     conn.close()
     return dict(row) if row else None
 
 
-def autenticar_usuario(alias: str, pin: str = "1234", db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    """Autentica a un usuario por alias y PIN."""
+def autenticar_usuario(alias: str, pin: str = "", db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Autentica estrictamente a un usuario por su usuario (alias) y contraseña (pin)."""
+    if not alias or not pin:
+        return None
     conn = obtener_conexion(db_path)
     cursor = conn.cursor()
     cursor.execute("""
-    SELECT id, alias, edad, objetivo_personal, fecha_registro 
+    SELECT id, alias, edad, objetivo_personal, fecha_registro, rol
     FROM usuarios 
-    WHERE LOWER(alias) = LOWER(?) AND (pin = ? OR pin IS NULL)
+    WHERE LOWER(alias) = LOWER(?) AND pin = ?
     """, (alias.strip(), pin.strip()))
     row = cursor.fetchone()
     conn.close()
-    return dict(row) if row else None
+    if row:
+        d = dict(row)
+        d["rol"] = "admin" if d["alias"].lower() == "admin" else (d.get("rol") or "participante")
+        return d
+    return None
 
 
 def crear_usuario(alias: str, edad: int = 24, objetivo_personal: str = "Autorregulación", pin: str = "1234", db_path: Optional[str] = None) -> Dict[str, Any]:
-    """Crea un nuevo usuario en la base de datos."""
+    """Crea un nuevo usuario en la base de datos (acción exclusiva del administrador)."""
     conn = obtener_conexion(db_path)
     cursor = conn.cursor()
+    # Verificar si ya existe ese nombre de usuario
+    cursor.execute("SELECT id FROM usuarios WHERE LOWER(alias) = LOWER(?)", (alias.strip(),))
+    existente = cursor.fetchone()
+    if existente:
+        conn.close()
+        raise ValueError(f"El usuario '{alias.strip()}' ya existe.")
     ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    rol = "admin" if alias.strip().lower() == "admin" else "participante"
     cursor.execute("""
-    INSERT INTO usuarios (alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad)
-    VALUES (?, ?, ?, ?, ?, ?)
-    """, (alias.strip(), pin.strip(), edad, ahora_str, objetivo_personal.strip(), f"hash_{alias.strip().lower()}"))
+    INSERT INTO usuarios (alias, pin, edad, fecha_registro, objetivo_personal, hash_seguridad, rol)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (alias.strip(), pin.strip(), edad, ahora_str, objetivo_personal.strip(), f"hash_{alias.strip().lower()}", rol))
     nuevo_id = cursor.lastrowid
     conn.commit()
     conn.close()
@@ -260,8 +285,24 @@ def crear_usuario(alias: str, edad: int = 24, objetivo_personal: str = "Autorreg
         "alias": alias.strip(),
         "edad": edad,
         "objetivo_personal": objetivo_personal.strip(),
-        "fecha_registro": ahora_str
+        "fecha_registro": ahora_str,
+        "rol": rol
     }
+
+
+def eliminar_usuario_bd(usuario_id: int, db_path: Optional[str] = None) -> bool:
+    """Elimina un usuario (excepto admin) y sus registros asociados."""
+    conn = obtener_conexion(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT alias FROM usuarios WHERE id = ?", (usuario_id,))
+    row = cursor.fetchone()
+    if not row or row["alias"].lower() == "admin":
+        conn.close()
+        return False
+    cursor.execute("DELETE FROM usuarios WHERE id = ?", (usuario_id,))
+    conn.commit()
+    conn.close()
+    return True
 
 
 def sembrar_datos_iniciales(usuario_id: int = 1, db_path: Optional[str] = None) -> int:

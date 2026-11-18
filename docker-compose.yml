@@ -1,17 +1,19 @@
 services:
-  # Servicio Web / Frontend & Prototipo
+  # Servicio Web + API de IA Unificado (Frontend + SQLite + Motor ML en Puerto 8088)
   mcontrol-app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.ia
     container_name: mcontrol_web
     restart: unless-stopped
+    working_dir: /app
     ports:
-      - "8088:80"
+      - "8088:8088"
     volumes:
-      - ./Proyecto:/usr/share/nginx/html:ro
+      - .:/app
+    command: python -m mcontrol_ai.api_service
 
-  # Servicio de Inteligencia Artificial (Pandas, Seaborn, Perceptrón con NumPy)
+  # Servicio de Inteligencia Artificial para consola interactiva (Clases 7, 8 y 9)
   python_ia:
     build:
       context: .

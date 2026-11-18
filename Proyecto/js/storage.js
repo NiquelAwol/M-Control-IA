@@ -10,11 +10,13 @@ const STORAGE_KEY_ACTIVE_USER = 'mcontrol_active_user_id';
 const STORAGE_KEY_USERS_LIST = 'mcontrol_users_list';
 const STORAGE_KEY_USER_EVENTS_PREFIX = 'mcontrol_events_user_';
 const STORAGE_KEY_USER_SETTINGS_PREFIX = 'mcontrol_settings_user_';
+const STORAGE_KEY_AUTH_SESSION = 'mcontrol_session_auth';
 
 const DEFAULT_USERS = [
-    { id: 1, alias: 'Participante 1 (Principal)', edad: 24, objetivo: 'autorregulacion', pin: '1234', fecha: '2026-07-01' },
-    { id: 2, alias: 'Participante 2 (Nuevo)', edad: 22, objetivo: 'autorregulacion', pin: '1234', fecha: '2026-10-01' },
-    { id: 3, alias: 'Participante 3 (Nuevo)', edad: 28, objetivo: 'estres', pin: '1234', fecha: '2026-10-01' }
+    { id: 1, alias: 'admin', edad: 24, objetivo: 'autorregulacion', pin: 'admin2026', rol: 'admin', fecha: '2026-07-01' },
+    { id: 2, alias: 'participante1', edad: 24, objetivo: 'autorregulacion', pin: '1234', rol: 'participante', fecha: '2026-10-01' },
+    { id: 3, alias: 'participante2', edad: 22, objetivo: 'autorregulacion', pin: '1234', rol: 'participante', fecha: '2026-10-01' },
+    { id: 4, alias: 'participante3', edad: 28, objetivo: 'estres', pin: '1234', rol: 'participante', fecha: '2026-10-01' }
 ];
 
 // Datos longitudinales representativos (Julio - Octubre 2026) sincronizados con la base de datos
@@ -186,9 +188,22 @@ const DEFAULT_SETTINGS = {
 
 const StorageService = {
     init() {
-        // 1. Inicializar lista de usuarios / participantes
-        if (!localStorage.getItem(STORAGE_KEY_USERS_LIST)) {
-            localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(DEFAULT_USERS));
+        // 1. Inicializar lista de usuarios / participantes y garantizar que exista 'admin'
+        let storedUsers = [];
+        try {
+            storedUsers = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS_LIST)) || [];
+        } catch (e) {
+            storedUsers = [];
+        }
+        if (!storedUsers.length) {
+            storedUsers = [...DEFAULT_USERS];
+            localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(storedUsers));
+        } else {
+            const hasAdmin = storedUsers.some(u => (u.alias || '').toLowerCase() === 'admin');
+            if (!hasAdmin) {
+                storedUsers.unshift({ id: 99, alias: 'admin', edad: 24, objetivo: 'autorregulacion', pin: 'admin2026', rol: 'admin', fecha: '2026-07-01' });
+                localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(storedUsers));
+            }
         }
 
         // 2. Participante activo por defecto: 1
@@ -209,10 +224,138 @@ const StorageService = {
         if (!localStorage.getItem(STORAGE_KEY_SETTINGS)) {
             localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
         }
+
+        // 5. Sincronizar lista de usuarios desde la base de datos central del servidor (una vez por carga)
+        if (!this._syncedServerUsers) {
+            this._syncedServerUsers = true;
+            fetch('/api/users').then(r => r.ok ? r.json() : null).then(srvList => {
+                if (Array.isArray(srvList) && srvList.length > 0) {
+                    const formatted = srvList.map(u => ({
+                        id: u.id,
+                        alias: u.alias,
+                        edad: u.edad || 24,
+                        objetivo: u.objetivo_personal || 'autorregulacion',
+                        pin: u.pin || '1234',
+                        rol: u.rol || ((u.alias || '').toLowerCase() === 'admin' ? 'admin' : 'participante'),
+                        fecha: (u.fecha_registro || '').split(' ')[0] || '2026-10-01'
+                    }));
+                    localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(formatted));
+                }
+            }).catch(() => {});
+        }
     },
 
     // ==========================================
-    // GESTIÓN DE PARTICIPANTES / MULTI-USUARIO
+    // CONTROL DE ACCESO Y AUTENTICACIÓN ESTRICTA
+    // ==========================================
+    getAuthSession() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_AUTH_SESSION);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    isAuthenticated() {
+        const sess = this.getAuthSession();
+        return !!(sess && sess.userId && sess.alias);
+    },
+
+    isAdmin() {
+        const sess = this.getAuthSession();
+        return !!(sess && (sess.rol === 'admin' || (sess.alias || '').toLowerCase() === 'admin'));
+    },
+
+    async authenticateWithCredentials(aliasInput, passwordInput) {
+        this.init();
+        const cleanAlias = (aliasInput || '').trim();
+        const cleanPin = String(passwordInput || '').trim();
+        if (!cleanAlias || !cleanPin) {
+            return { ok: false, error: 'Debes ingresar tu usuario y contraseña.' };
+        }
+
+        // 1. Intentar autenticar contra el servidor central Python (para usuarios remotos por link)
+        try {
+            const resp = await fetch('/api/users/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ alias: cleanAlias, pin: cleanPin })
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data && data.user) {
+                    const srvUser = data.user;
+                    const users = this.getUsers();
+                    let localUser = users.find(u => (u.alias || '').toLowerCase() === srvUser.alias.toLowerCase());
+                    if (!localUser) {
+                        localUser = {
+                            id: srvUser.id,
+                            alias: srvUser.alias,
+                            edad: srvUser.edad || 24,
+                            objetivo: srvUser.objetivo_personal || 'autorregulacion',
+                            pin: cleanPin,
+                            rol: srvUser.rol || (srvUser.alias.toLowerCase() === 'admin' ? 'admin' : 'participante'),
+                            fecha: (srvUser.fecha_registro || '').split(' ')[0] || '2026-10-01'
+                        };
+                        users.push(localUser);
+                        localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(users));
+                    } else {
+                        localUser.pin = cleanPin;
+                        localUser.rol = srvUser.rol || (localUser.alias.toLowerCase() === 'admin' ? 'admin' : 'participante');
+                        localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(users));
+                    }
+                    this._establishSession(localUser);
+                    return { ok: true, user: localUser };
+                }
+            } else if (resp.status === 401) {
+                // Revisar también en usuarios locales por si el admin lo creó en localStorage
+                const localMatch = this._findLocalUser(cleanAlias, cleanPin);
+                if (localMatch) {
+                    this._establishSession(localMatch);
+                    return { ok: true, user: localMatch };
+                }
+                return { ok: false, error: 'Usuario o contraseña incorrectos. Solo el Administrador puede otorgar credenciales.' };
+            }
+        } catch (err) {
+            // Fallback local si no hay conexión con la API
+        }
+
+        // 2. Verificación en lista local
+        const localMatch = this._findLocalUser(cleanAlias, cleanPin);
+        if (localMatch) {
+            this._establishSession(localMatch);
+            return { ok: true, user: localMatch };
+        }
+        return { ok: false, error: 'Usuario o contraseña incorrectos. Solicita tu cuenta al Administrador.' };
+    },
+
+    _findLocalUser(cleanAlias, cleanPin) {
+        const users = this.getUsers();
+        return users.find(u =>
+            (u.alias || '').trim().toLowerCase() === cleanAlias.toLowerCase() &&
+            String(u.pin || '').trim() === cleanPin
+        ) || null;
+    },
+
+    _establishSession(user) {
+        const rol = user.rol || ((user.alias || '').toLowerCase() === 'admin' ? 'admin' : 'participante');
+        const sessionObj = {
+            userId: user.id,
+            alias: user.alias,
+            rol: rol,
+            loginAt: new Date().toISOString()
+        };
+        localStorage.setItem(STORAGE_KEY_AUTH_SESSION, JSON.stringify(sessionObj));
+        this.setCurrentUser(user.id);
+    },
+
+    logout() {
+        localStorage.removeItem(STORAGE_KEY_AUTH_SESSION);
+    },
+
+    // ==========================================
+    // GESTIÓN DE PARTICIPANTES (SOLO ADMIN)
     // ==========================================
     getUsers() {
         this.init();
@@ -225,6 +368,8 @@ const StorageService = {
 
     getActiveUserId() {
         this.init();
+        const sess = this.getAuthSession();
+        if (sess && sess.userId) return parseInt(sess.userId, 10);
         const raw = localStorage.getItem(STORAGE_KEY_ACTIVE_USER);
         return raw ? parseInt(raw, 10) : 1;
     },
@@ -232,7 +377,7 @@ const StorageService = {
     getCurrentUser() {
         const users = this.getUsers();
         const activeId = this.getActiveUserId();
-        return users.find(u => u.id === activeId) || users[0] || { id: 1, alias: 'Participante 1', edad: 24, objetivo: 'autorregulacion' };
+        return users.find(u => u.id === activeId) || users[0] || { id: 1, alias: 'admin', edad: 24, objetivo: 'autorregulacion', rol: 'admin' };
     },
 
     setCurrentUser(userId) {
@@ -244,53 +389,79 @@ const StorageService = {
         return user;
     },
 
-    registerUser(alias, edad = 24, objetivo = 'autorregulacion', pin = '1234') {
+    async adminCreateUser(alias, edad = 24, objetivo = 'autorregulacion', pin = '1234') {
         this.init();
+        if (!this.isAdmin()) {
+            throw new Error('Acceso denegado: Solo el Administrador puede crear usuarios.');
+        }
+        const cleanAlias = (alias || '').trim();
+        const cleanPin = String(pin || '').trim();
+        if (!cleanAlias || !cleanPin) {
+            throw new Error('Debes especificar un nombre de usuario y una contraseña.');
+        }
+
         const users = this.getUsers();
-        const maxId = users.reduce((max, u) => Math.max(max, u.id || 0), 0);
+        if (users.some(u => (u.alias || '').toLowerCase() === cleanAlias.toLowerCase())) {
+            throw new Error(`El usuario "${cleanAlias}" ya existe.`);
+        }
+
+        let createdId = users.reduce((max, u) => Math.max(max, u.id || 0), 0) + 1;
+
+        // Registrar también en el servidor SQLite central para que funcione por el link externo
+        try {
+            const resp = await fetch('/api/users/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    admin_alias: 'admin',
+                    alias: cleanAlias,
+                    edad: parseInt(edad, 10) || 24,
+                    objetivo: objetivo,
+                    pin: cleanPin
+                })
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data && data.user && data.user.id) {
+                    createdId = data.user.id;
+                }
+            }
+        } catch (e) {}
+
         const newUser = {
-            id: maxId + 1,
-            alias: alias.trim() || `Participante ${maxId + 1}`,
+            id: createdId,
+            alias: cleanAlias,
             edad: parseInt(edad, 10) || 24,
             objetivo: objetivo.trim() || 'autorregulacion',
-            pin: String(pin).trim() || '1234',
+            pin: cleanPin,
+            rol: cleanAlias.toLowerCase() === 'admin' ? 'admin' : 'participante',
             fecha: new Date().toISOString().split('T')[0]
         };
 
         users.push(newUser);
         localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(users));
-        // Inicializar eventos vacíos para el nuevo participante
         localStorage.setItem(STORAGE_KEY_USER_EVENTS_PREFIX + newUser.id, JSON.stringify([]));
-        this.setCurrentUser(newUser.id);
-
-        // Notificar opcionalmente al backend de IA
-        try {
-            fetch('/api/users/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    alias: newUser.alias,
-                    edad: newUser.edad,
-                    objetivo: newUser.objetivo,
-                    pin: newUser.pin
-                })
-            }).catch(() => {});
-        } catch (e) {}
-
         return newUser;
     },
 
-    loginUser(alias, pin = '1234') {
-        this.init();
+    async adminDeleteUser(userId) {
+        if (!this.isAdmin()) return false;
         const users = this.getUsers();
-        const cleanAlias = alias.trim().toLowerCase();
-        let user = users.find(u => u.alias.toLowerCase() === cleanAlias);
-        if (user) {
-            this.setCurrentUser(user.id);
-            return user;
-        }
-        // Si no existe, crear participante automáticamente para experiencia sin fricción
-        return this.registerUser(alias, 24, 'autorregulacion', pin);
+        const target = users.find(u => u.id === userId);
+        if (!target || (target.alias || '').toLowerCase() === 'admin') return false;
+
+        const filtered = users.filter(u => u.id !== userId);
+        localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(filtered));
+        localStorage.removeItem(STORAGE_KEY_USER_EVENTS_PREFIX + userId);
+
+        try {
+            await fetch('/api/users/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ admin_alias: 'admin', user_id: userId })
+            });
+        } catch (e) {}
+        return true;
     },
 
     // ==========================================
