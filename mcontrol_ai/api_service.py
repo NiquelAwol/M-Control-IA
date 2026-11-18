@@ -16,7 +16,7 @@ import json
 import os
 import urllib.parse
 from datetime import datetime
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from typing import Any, Dict
 
 from .base_conocimiento import obtener_fuentes, DATOS_POBLACIONALES_NSSHB
@@ -229,8 +229,8 @@ def iniciar_servidor(puerto: int = 8088):
     """Inicia el servidor local de M-Control AI."""
     inicializar_base_datos()
     sembrar_datos_iniciales(1)
-    server_address = ("", puerto)
-    httpd = HTTPServer(server_address, MControlAPIHandler)
+    server_address = ("0.0.0.0", puerto)
+    httpd = ThreadingHTTPServer(server_address, MControlAPIHandler)
     print("=" * 60)
     print(f"  M-CONTROL AI | SERVIDOR PREDICTIVO ACTIVO")
     print(f"  URL Local:  http://localhost:{puerto}")
