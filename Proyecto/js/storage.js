@@ -228,7 +228,7 @@ const StorageService = {
         // 5. Sincronizar lista de usuarios desde la base de datos central del servidor (una vez por carga)
         if (!this._syncedServerUsers) {
             this._syncedServerUsers = true;
-            fetch('/api/users').then(r => r.ok ? r.json() : null).then(srvList => {
+            this.apiFetch('/api/users').then(r => r.ok ? r.json() : null).then(srvList => {
                 if (Array.isArray(srvList) && srvList.length > 0) {
                     const formatted = srvList.map(u => ({
                         id: u.id,
@@ -243,6 +243,38 @@ const StorageService = {
                 }
             }).catch(() => {});
         }
+    },
+
+    // ==========================================
+    // PUENTE DINÁMICO GITHUB PAGES -> TÚNEL ACTIVO
+    // ==========================================
+    async resolveApiBaseUrl() {
+        if (this._cachedApiBase !== undefined) return this._cachedApiBase;
+        const host = (window.location.hostname || '').toLowerCase();
+        // Si estamos en localhost o directamente en el dominio del túnel, usar ruta relativa ''
+        if (host === 'localhost' || host === '127.0.0.1' || host.endsWith('.trycloudflare.com')) {
+            this._cachedApiBase = '';
+            return '';
+        }
+        // Si el usuario entró por el Link Maestro Fijo (GitHub Pages), consultar el túnel activo en GitHub
+        try {
+            const rawUrl = 'https://raw.githubusercontent.com/NiquelAwol/M-Control-IA/main/tunnel_config.json?t=' + Date.now();
+            const r = await fetch(rawUrl, { cache: 'no-store' });
+            if (r.ok) {
+                const cfg = await r.json();
+                if (cfg && cfg.tunnel_url) {
+                    this._cachedApiBase = cfg.tunnel_url.replace(/\/+$/, '');
+                    return this._cachedApiBase;
+                }
+            }
+        } catch (e) {}
+        this._cachedApiBase = '';
+        return '';
+    },
+
+    async apiFetch(endpoint, options = {}) {
+        const base = await this.resolveApiBaseUrl();
+        return fetch(base + endpoint, options);
     },
 
     // ==========================================
@@ -277,7 +309,7 @@ const StorageService = {
 
         // 1. Intentar autenticar contra el servidor central Python (para usuarios remotos por link)
         try {
-            const resp = await fetch('/api/users/login', {
+            const resp = await this.apiFetch('/api/users/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ alias: cleanAlias, pin: cleanPin })
@@ -409,7 +441,7 @@ const StorageService = {
 
         // Registrar también en el servidor SQLite central para que funcione por el link externo
         try {
-            const resp = await fetch('/api/users/register', {
+            const resp = await this.apiFetch('/api/users/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -455,7 +487,7 @@ const StorageService = {
         localStorage.removeItem(STORAGE_KEY_USER_EVENTS_PREFIX + userId);
 
         try {
-            await fetch('/api/users/delete', {
+            await this.apiFetch('/api/users/delete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ admin_alias: 'admin', user_id: userId })
@@ -515,7 +547,7 @@ const StorageService = {
 
         // Notificar al backend de IA asociando el usuario_id correspondiente
         try {
-            fetch('/api/records', {
+            this.apiFetch('/api/records', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

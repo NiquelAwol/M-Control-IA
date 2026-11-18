@@ -40,3 +40,5 @@ ENV/
 Thumbs.db
 desktop.ini
 cloudflared.exe
+
+cloudflared_live.log
