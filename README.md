@@ -10,6 +10,104 @@ Plataforma web de autorregulación y monitoreo del bienestar masculino, sustenta
 
 ---
 
+## 🏆 Entrega Final (Tercer Corte - 40%) · Sistema de Machine Learning e Informe APA 7
+
+* **Institución:** Corporación de Estudios Tecnológicos del Norte del Valle (COTECNOVA) - Cartago, Valle del Cauca.
+* **Asignatura:** Inteligencia Artificial · Programa de Ingeniería de Sistemas.
+* **Docente:** Jhon James Cano Sánchez · **Fecha:** 22 de noviembre de 2026.
+* **Integrantes (Grupo 03):** Andrés Felipe Mejía Suaza y Miguel Ángel Ramírez Gutiérrez.
+
+---
+
+### 1. Componente 1: Sistema Funcional de Machine Learning (25%)
+
+La fase final evoluciona el perceptrón lineal previo hacia una arquitectura multivariada completa en **Scikit-Learn** orientada a la **Clasificación Supervisada Preventiva** bajo lineamientos clínicos de la OMS (CIE-11 código 6C72) y la ISSM:
+
+* **Pipeline con Prevención de Fuga de Información (Data Leakage):**
+  1. Se excluyen estrictamente las columnas `puntuacion_bienestar` y `estado_semaforo` de la matriz de entrada $X$ (9 características clínicas: `intervalo_horas`, `nivel_estres`, `interferencia_funcional`, `sintomas_fisicos`, `consumo_pornografia`, `hora_evento`, `control_1`, `control_2`, `control_3`).
+  2. La estandarización `StandardScaler()` se encapsula dentro del flujo `sklearn.pipeline.Pipeline`, calculando la media y desviación estándar exclusivamente sobre los datos de entrenamiento en cada pliegue de validación cruzada.
+* **División Estratificada y Validación Cruzada:**
+  * Partición Entrenamiento / Prueba: 75% entrenamiento (35 muestras) y 25% prueba (12 muestras) con `stratify=y` y `random_state=42`.
+  * Validación Cruzada Estratificada (5-Fold StratifiedKFold) para garantizar estabilidad y evaluar sobreajuste ante muestras clínicas pequeñas.
+* **Modelos Comparados en Scikit-Learn (`src/modelo_proyecto.py`):**
+  1. **Regresión Logística Regularizada (Pipeline):** Línea base lineal multivariada (C=1.0, L2, class_weight='balanced').
+  2. **Random Forest Classifier + GridSearchCV (Modelo Ganador):** Ensamblado de árboles con optimización hiperparamétrica (`max_depth: 3`, `min_samples_split: 2`, `n_estimators: 50`).
+  3. **Gradient Boosting Classifier:** Ensamblado secuencial de árboles boosting (`n_estimators: 50`, `learning_rate: 0.1`, `max_depth: 3`).
+  4. **Red Neuronal MLPClassifier:** Perceptrón multicapa con capas ocultas `(16, 8)`, función de activación ReLU y optimizador Adam.
+
+#### Tabla Comparativa de Desempeño
+| Modelo en Pipeline | CV Accuracy | CV Recall | CV F1 | Test Accuracy | Test Precision | Test Recall | Test F1 | Test ROC-AUC |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Regresión Logística** | 100.00% | 100.00% | 100.00% | 100.00% | 100.00% | 100.00% | 100.00% | 100.00% |
+| **Random Forest + GridSearchCV\*** | **100.00%** | **100.00%** | **100.00%** | **100.00%** | **100.00%** | **100.00%** | **100.00%** | **100.00%** |
+| **Gradient Boosting** | 100.00% | 100.00% | 100.00% | 100.00% | 100.00% | 100.00% | 100.00% | 100.00% |
+| **Red Neuronal MLPClassifier** | 97.14% | 100.00% | 97.14% | 100.00% | 100.00% | 100.00% | 100.00% | 100.00% |
+
+*\*Modelo ganador seleccionado y serializado en `src/modelo_final.joblib` (y raíz `modelo_final.joblib`). Se seleccionó por su capacidad para modelar interacciones no lineales (como irritación física o interferencia en sueño con descanso prolongado) sin sobreajuste, alcanzando 100% de Recall (cero falsos negativos).*
+
+* **Inferencia en Vivo sin Reentrenamiento (`src/usar_modelo.py`):**
+  Carga instantáneamente el archivo `modelo_final.joblib` con `joblib.load()` y clasifica 4 nuevos casos clínicos reales de Cartago:
+  * **Caso 1 (Sobrecarga Aguda en Parciales):** Descanso 9.5h, estrés 9/10, interferencia 2, síntomas 1 -> **100.00% Probabilidad** -> **Semáforo Rojo** (Pausa recomendada de 48 a 72h).
+  * **Caso 2 (Deportista Autorregulado):** Descanso 56h, estrés 2/10, interferencia 0, síntomas 0 -> **0.00% Probabilidad** -> **Semáforo Verde** (Balance óptimo).
+  * **Caso 3 (Caso No Lineal con Irritación):** Descanso 41h, estrés 4/10, interferencia 1, irritación física 1 -> **84.71% Probabilidad** -> **Semáforo Rojo** (Detectado exitosamente por Random Forest, donde el perceptrón lineal 2D fallaba).
+  * **Caso 4 (Trabajador en Fatiga Vespertina):** Descanso 24h, estrés 6/10, interferencia 0, síntomas 0 -> **43.71% Probabilidad** -> **Semáforo Amarillo** (Vigilancia de contexto).
+
+* **Gráficos de Evaluación Generados:**
+  * `matriz_confusion_modelo.png`: Matriz de confusión en conjunto de prueba (7 Verdaderos Negativos, 5 Verdaderos Positivos, 0 Falsos Negativos, 0 Falsos Positivos).
+  * `comparacion_modelos_sklearn.png`: Diagrama de barras agrupadas comparando CV Accuracy, CV Recall, CV F1, Test Accuracy y Test F1 entre los 4 modelos.
+
+---
+
+### 2. Instrucciones Rápidas de Ejecución
+
+#### Opción A: Entorno Local (Python 3.10+)
+```bash
+# 1. Pipeline de Limpieza y Preparación (Pandas)
+python src/preparacion_datos.py
+
+# 2. Perceptrón Simple desde Cero (NumPy)
+python src/perceptron_proyecto.py
+
+# 3. Entrenamiento, Comparación y Exportación del Modelo Ganador (Scikit-Learn + Joblib)
+python src/modelo_proyecto.py
+
+# 4. Demostración de Inferencia en Vivo con Casos Nuevos (Carga joblib sin reentrenar)
+python src/usar_modelo.py
+```
+
+#### Opción B: Contenedor Docker Oficial
+```bash
+docker compose build python_ia
+docker compose run --rm python_ia bash
+# Dentro del contenedor (/app/src#):
+python preparacion_datos.py
+python perceptron_proyecto.py
+python modelo_proyecto.py
+python usar_modelo.py
+```
+
+---
+
+### 3. Componente 2: Informe Final Escrito en Normas APA 7.ª Edición (15%)
+
+El informe final oficial fue generado con estricto apego al manual APA 7.ª edición (márgenes de 2.54 cm, tipografía Times New Roman 12 pt, interlineado doble, sangría de 1.27 cm, tablas sin líneas verticales y figuras con notas explicativas) y consta de **30 páginas** detalladas:
+
+* **Archivos Oficiales del Informe:**
+  * Word editable: `CursoIA/Informe_Final_Grupo03_MControl.docx`
+  * Versión PDF oficial: `CursoIA/Informe_Final_Grupo03_MControl.pdf`
+* **Contenido Destacado del Documento:**
+  1. **Portada Estudiante APA 7:** Título, autores, programa, asignatura, docente y fecha (Página 1).
+  2. **Resumen y Palabras Clave:** Párrafo conciso de 205 palabras y 5 descriptores normalizados (Página 2).
+  3. **Introducción y Objetivos:** Contextualización en Cartago (Valle del Cauca), justificación médica basada en OMS/ISSM, pregunta de investigación, 1 objetivo general y 4 específicos (Páginas 3 a 6).
+  4. **Marco Teórico:** Fundamentación clínica y matemática: CIE-11 (OMS), derivación analítica de la pérdida BCE, gradientes del perceptrón, ensamblados Random Forest y redes neuronales MLP (Páginas 6 a 9).
+  5. **Metodología:** Diccionario de variables, proceso de depuración con Pandas, matriz de confusión, métricas de evaluación, arquitectura de flujos Pipeline, GridSearchCV y contenedor Docker (Páginas 10 a 15).
+  6. **Resultados:** Tablas y 7 figuras APA: curva de aprendizaje, frontera de decisión 2D, matriz de confusión Scikit-Learn, comparativa gráfica y 4 casos de inferencia en vivo (Páginas 15 a 19).
+  7. **Discusión y Ética:** Contraste con la literatura, análisis de impacto en Cartago, limitaciones, análisis de desplazamiento de datos (Data Drift / Covariate Shift) y privacidad por diseño (Páginas 20 a 23).
+  8. **Conclusiones y Referencias:** Cumplimiento de objetivos, trabajo futuro y más de 6 referencias académicas en formato APA 7 con sangría francesa (Páginas 23 a 25).
+  9. **Apéndices:** Repositorio GitHub (Apéndice A), fragmentos de código fuente (Apéndice B), declaración ética del uso de IA (Apéndice C) y **Guía de Respuestas a las 6 Preguntas de Sustentación Oral** de la rúbrica (Apéndice D, Páginas 26 a 30).
+
+---
+
 ## 🧠 Avance 2 - Machine Learning: Preparación de Datos y Perceptrón desde Cero
 
 Este avance corresponde a las **Clases 7, 8 y 9** de la asignatura **Inteligencia Artificial** (Ingeniería de Sistemas - Docente: Jhon James Cano Sánchez). Se implementa el pipeline de preparación de datos con Pandas, análisis visual con Seaborn y el primer modelo predictivo construido desde cero con NumPy (sin Scikit-Learn).
