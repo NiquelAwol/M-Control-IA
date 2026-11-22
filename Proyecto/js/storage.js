@@ -16,7 +16,10 @@ const DEFAULT_USERS = [
     { id: 1, alias: 'admin', edad: 24, objetivo: 'autorregulacion', pin: 'admin2026', rol: 'admin', fecha: '2026-07-01' },
     { id: 2, alias: 'participante1', edad: 24, objetivo: 'autorregulacion', pin: '1234', rol: 'participante', fecha: '2026-10-01' },
     { id: 3, alias: 'participante2', edad: 22, objetivo: 'autorregulacion', pin: '1234', rol: 'participante', fecha: '2026-10-01' },
-    { id: 4, alias: 'participante3', edad: 28, objetivo: 'estres', pin: '1234', rol: 'participante', fecha: '2026-10-01' }
+    { id: 4, alias: 'participante3', edad: 28, objetivo: 'estres', pin: '1234', rol: 'participante', fecha: '2026-10-01' },
+    { id: 6, alias: 'participante4', edad: 27, objetivo: 'deporte', pin: '1234', rol: 'participante', fecha: '2026-07-01' },
+    { id: 7, alias: 'participante5', edad: 22, objetivo: 'academico', pin: '1234', rol: 'participante', fecha: '2026-07-01' },
+    { id: 8, alias: 'participante6', edad: 31, objetivo: 'laboral', pin: '1234', rol: 'participante', fecha: '2026-07-01' }
 ];
 
 // Datos longitudinales representativos (Julio - Octubre 2026) sincronizados con la base de datos

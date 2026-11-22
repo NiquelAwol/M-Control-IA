@@ -250,8 +250,8 @@ def autenticar_usuario(alias: str, pin: str = "", db_path: Optional[str] = None)
     cursor.execute("""
     SELECT id, alias, edad, objetivo_personal, fecha_registro, rol
     FROM usuarios 
-    WHERE LOWER(alias) = LOWER(?) AND pin = ?
-    """, (alias.strip(), pin.strip()))
+    WHERE (LOWER(alias) = LOWER(?) OR REPLACE(LOWER(alias), ' ', '') = REPLACE(LOWER(?), ' ', '')) AND pin = ?
+    """, (alias.strip(), alias.strip(), pin.strip()))
     row = cursor.fetchone()
     conn.close()
     if row:
