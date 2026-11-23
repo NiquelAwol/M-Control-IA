@@ -164,12 +164,16 @@
     <script src="js/storage.js"></script>
     <script src="js/app.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        async function refreshHomeDashboard() {
             const curUser = window.StorageService.getCurrentUser();
             const aliasEl = document.getElementById('home-user-alias');
             if (aliasEl && curUser) aliasEl.innerText = curUser.alias;
 
-            const events = window.StorageService.getEvents();
+            try {
+                if (curUser) await window.StorageService.syncEventsFromServer(curUser.id);
+            } catch (e) {}
+
+            const events = window.StorageService.getEvents(curUser ? curUser.id : null);
 
             // Calcular métricas
             const now = new Date();
@@ -245,6 +249,11 @@
                 document.getElementById('desc-estado').innerText = 'Comienza registrando tu primer evento para que el sistema aprenda de tu patrón individual.';
                 document.getElementById('puntuacion-bienestar').innerText = '100';
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshHomeDashboard();
+            window.addEventListener('mcontrol:userChanged', refreshHomeDashboard);
         });
     </script>
 </body>

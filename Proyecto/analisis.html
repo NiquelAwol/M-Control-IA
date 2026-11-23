@@ -218,12 +218,16 @@
     <script src="js/storage.js"></script>
     <script src="js/app.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        async function refreshAnalisisDashboard() {
             const curUser = window.StorageService.getCurrentUser();
             const aliasEl = document.getElementById('analisis-user-alias');
             if (aliasEl && curUser) aliasEl.innerText = curUser.alias;
 
-            const events = window.StorageService.getEvents();
+            try {
+                if (curUser) await window.StorageService.syncEventsFromServer(curUser.id);
+            } catch (e) {}
+
+            const events = window.StorageService.getEvents(curUser ? curUser.id : null);
 
             const now = new Date();
             const d7 = new Date(now.getTime() - (7 * 24 * 3600 * 1000));
@@ -304,6 +308,11 @@
                 document.getElementById('interval-avg').innerText = 'N/A';
                 document.getElementById('algoritmo-feedback').innerText = 'Registra eventos para que el sistema genere diagnósticos basados en tu historial.';
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshAnalisisDashboard();
+            window.addEventListener('mcontrol:userChanged', refreshAnalisisDashboard);
         });
     </script>
 </body>

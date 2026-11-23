@@ -350,10 +350,17 @@
 
             document.getElementById('modal-close-btn').addEventListener('click', closeModal);
             document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+
+            window.addEventListener('mcontrol:userChanged', () => {
+                cargarCalendarioConIA();
+            });
         });
 
         async function cargarCalendarioConIA() {
             const activeUser = window.StorageService.getCurrentUser();
+            try {
+                await window.StorageService.syncEventsFromServer(activeUser.id);
+            } catch (e) {}
             const userEvents = window.StorageService.getEvents(activeUser.id);
             const aliasEl = document.getElementById('cal-user-alias');
             const detailEl = document.getElementById('cal-user-detail');
@@ -371,6 +378,7 @@
                     document.getElementById('lbl-status-modelo').innerText = `Activo (${data.dias.length} días proyectados)`;
                     renderCalendarGrid(data);
                     actualizarMetricasMes(data.resumen_estados);
+                    renderTable();
                     return;
                 }
             } catch (e) {
@@ -379,6 +387,7 @@
 
             // Fallback inteligente offline
             generarCalendarioOffline();
+            renderTable();
         }
 
         function normalizarColor(nivel) {
@@ -599,7 +608,8 @@
         function renderTable() {
             const tbody = document.getElementById('events-table-body');
             tbody.innerHTML = '';
-            const events = window.StorageService.getEvents();
+            const activeUser = window.StorageService.getCurrentUser();
+            const events = window.StorageService.getEvents(activeUser ? activeUser.id : null);
 
             if (events.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay eventos registrados aún.</td></tr>`;
