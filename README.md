@@ -32,7 +32,7 @@ La fase final evoluciona el perceptrón lineal previo hacia una arquitectura mul
 * **Modelos Comparados en Scikit-Learn (`src/modelo_proyecto.py`):**
   1. **Regresión Logística Regularizada (Pipeline):** Línea base lineal multivariada (C=1.0, L2, class_weight='balanced').
   2. **Random Forest Classifier + GridSearchCV (Modelo Ganador):** Ensamblado de árboles con optimización hiperparamétrica (`max_depth: 3`, `min_samples_split: 2`, `n_estimators: 50`).
-  3. **Gradient Boosting Classifier:** Ensamblado secuencial de árboles boosting (`n_estimators: 50`, `learning_rate: 0.1`, `max_depth: 3`).
+  3. **Gradient Boosting Classifier:** Ensamblado secuencial de árboles boosting (`n_estimators: 100`, `learning_rate: 0.1`, `max_depth: 3`).
   4. **Red Neuronal MLPClassifier:** Perceptrón multicapa con capas ocultas `(16, 8)`, función de activación ReLU y optimizador Adam.
 
 #### Tabla Comparativa de Desempeño
