@@ -17,9 +17,9 @@ const DEFAULT_USERS = [
     { id: 2, alias: 'participante1', edad: 24, objetivo: 'autorregulacion', pin: '1234', rol: 'participante', fecha: '2026-10-01' },
     { id: 3, alias: 'participante2', edad: 22, objetivo: 'autorregulacion', pin: '1234', rol: 'participante', fecha: '2026-10-01' },
     { id: 4, alias: 'participante3', edad: 28, objetivo: 'estres', pin: '1234', rol: 'participante', fecha: '2026-10-01' },
-    { id: 6, alias: 'participante4', edad: 27, objetivo: 'deporte', pin: '1234', rol: 'participante', fecha: '2026-07-01' },
-    { id: 7, alias: 'participante5', edad: 22, objetivo: 'academico', pin: '1234', rol: 'participante', fecha: '2026-07-01' },
-    { id: 8, alias: 'participante6', edad: 31, objetivo: 'laboral', pin: '1234', rol: 'participante', fecha: '2026-07-01' }
+    { id: 6, alias: 'raul', edad: 27, objetivo: 'deporte', pin: '1234', rol: 'participante', fecha: '2026-07-01' },
+    { id: 7, alias: 'roberto', edad: 22, objetivo: 'academico', pin: '1234', rol: 'participante', fecha: '2026-07-01' },
+    { id: 8, alias: 'juan', edad: 31, objetivo: 'laboral', pin: '1234', rol: 'participante', fecha: '2026-07-01' }
 ];
 
 // Datos longitudinales representativos (Julio - Octubre 2026) sincronizados con la base de datos
@@ -205,6 +205,14 @@ const StorageService = {
             const hasAdmin = storedUsers.some(u => (u.alias || '').toLowerCase() === 'admin');
             if (!hasAdmin) {
                 storedUsers.unshift({ id: 99, alias: 'admin', edad: 24, objetivo: 'autorregulacion', pin: 'admin2026', rol: 'admin', fecha: '2026-07-01' });
+            }
+            let updated = false;
+            storedUsers.forEach(u => {
+                if (u.id === 6 || (u.alias || '').toLowerCase() === 'participante4') { u.alias = 'raul'; updated = true; }
+                if (u.id === 7 || (u.alias || '').toLowerCase() === 'participante5') { u.alias = 'roberto'; updated = true; }
+                if (u.id === 8 || (u.alias || '').toLowerCase() === 'participante6') { u.alias = 'juan'; updated = true; }
+            });
+            if (updated || !hasAdmin) {
                 localStorage.setItem(STORAGE_KEY_USERS_LIST, JSON.stringify(storedUsers));
             }
         }
